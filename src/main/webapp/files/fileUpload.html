@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ </head>
+ <body>
+  <div class="layui-upload">
+  <button type="button" class="layui-btn layui-btn-normal" id="testList">选择文件</button> 
+  <button type="button" class="layui-btn" id="testListAction" >上传文件</button>
+  <button type="button" class="layui-btn layui-btn-danger" style="float:right" id="fileload" >系统加载文件</button>
+  <div class="layui-upload-list" >
+    <table class="layui-table">
+      <thead>
+        <tr><th>文件名</th>
+        <th>大小</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr></thead>
+      <tbody id="demoList"></tbody>
+    </table>
+  </div>
+  
+</div> 
+ <script src="../static/layui/layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+layui.use(['layer','upload'], function(){
+  var $ = layui.jquery
+  ,upload = layui.upload;
+  //多文件列表示例
+  var demoListView = $('#demoList')
+  ,uploadListIns = upload.render({
+    elem: '#testList'
+    ,url: '../upload' //改成您自己的上传接口
+    ,accept: 'file'
+    ,multiple: true
+    ,auto: false
+    ,bindAction: '#testListAction'
+    ,choose: function(obj){ 
+      var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+      //读取本地文件
+       console.log(files);
+       obj.preview(function(index, file, result){
+        var tr = $(['<tr id="upload-'+ index +'">'
+          ,'<td>'+ file.name +'</td>'
+          ,'<td>'+ (file.size/1024).toFixed(1) +'kb</td>'
+          ,'<td>等待上传</td>'
+          ,'<td>'
+            ,'<button class="layui-btn layui-btn-xs demo-reload layui-hide">重传</button>'
+            ,'<button class="layui-btn layui-btn-xs layui-btn-danger demo-delete">删除</button>'
+          ,'</td>'
+        ,'</tr>'].join(''));
+        //单个重传
+        tr.find('.demo-reload').on('click', function(){
+          obj.upload(index, file);
+        });
+        
+        //删除
+        tr.find('.demo-delete').on('click', function(){
+          delete files[index]; //删除对应的文件
+          tr.remove();
+          uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+        });
+        
+        demoListView.append(tr);
+      });
+    }
+    ,done: function(res, index, upload){
+      if(res.code == 0){ //上传成功
+        var tr = demoListView.find('tr#upload-'+ index)
+        ,tds = tr.children();
+        tds.eq(2).html('<span style="color: #5FB878;">'+res.message+'</span>');
+        tds.eq(3).html(''); //清空操作
+        return delete this.files[index]; //删除文件队列已经上传成功的文件
+      }
+      if(res.code == 2){
+    	  var tr = demoListView.find('tr#upload-'+ index)
+          ,tds = tr.children();
+          tds.eq(2).html('<span style="color: #FF5722;">'+res.message+'</span>');
+          tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+      }
+      this.error(index, upload,res);
+    }
+    ,error: function(index,upload,res){
+      var tr = demoListView.find('tr#upload-'+ index)
+      ,tds = tr.children();
+      tds.eq(2).html('<span style="color: #FF5722;">'+res.message+'</span>');
+      tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+    }
+  });
+  $("#fileload").on("click", function(){
+	  var tr = demoListView.find('tr');
+	  var flag=true;
+	  $.each(tr,function(index,item){
+		  tds=$(item).children();
+		  if(tds.eq(2).find('span').text()=='文件上传失败'){
+			  layer.msg("部分文件上传失败");
+			  flag=false;
+		  }
+	  });
+	  if(flag){
+		  var loading = layer.load(0);
+		  $.ajax({
+			   type: "get",
+			   url: "../fileInit",
+			   dataType:"json",
+			  // contentType:"application/json;charset=UTF-8",
+			   
+			   success: function(res){
+				     res=$.parseJSON(res);
+				     console.log(res);
+	            	 if(res.code=="0"){
+	            		 layer.msg("文件加载成功"); 
+	        
+	            	 }else{
+	            		 layer.msg("文件加载失败"); 
+	            		 
+	            	 }
+	            	 layer.close(loading);
+			   },error:function(){
+		 			layer.msg("操作失败");
+		 			layer.close(loading);
+		 		}
+			});
+	  }
+	  
+  });
+  
+});
+</script>
+
+</body>
+</html>

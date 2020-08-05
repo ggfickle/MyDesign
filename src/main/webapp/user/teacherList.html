@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+ 	<form class="layui-form" action="">
+		<div class="layui-inline">
+			<label class="layui-form-label">姓名</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="name" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="002">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label">院系</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="college" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="001">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<button class="layui-btn" id="searchBtn" lay-submit
+					lay-filter="formDemo" data-type="reload" style="margin-left: 15px">
+					<i class="layui-icon layui-icon-search"></i> 查询
+				</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+  <table class="layui-hide" id="test" lay-filter="teacher"></table>
+ <script type="text/html" id="bar">
+   <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="upd">重置密码</a>
+ </script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../teacherList'
+    ,title: '上传文件数据表'
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(res){ //res 即为原始返回的数据
+    	data =$.parseJSON(res);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+      {field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'账号', align: 'center',hide:true}
+      ,{field:'name', title:'教师',align: 'center'}
+      ,{field:'pwd', title:'密码',align: 'center'}
+      ,{field:'email', title:'邮箱',edit: 'text',align: 'center'}
+      ,{field:'chief', title:'主监考次数',align: 'center'}
+      ,{field:'deputy', title:'副监考次数',align: 'center'}
+      ,{field:'college', title:'院系',align: 'center',templet: function (data) {
+          return data.college.name;
+       }}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  var form =layui.form;
+  form.render();
+  var tableSelect = layui.tableSelect;
+  tableSelect.render({
+  	elem: '#college',	//定义输入框input对象 必填
+  	checkedKey:'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+  	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+  	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+  	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+  		url:'../collegeListLimit'
+  	   ,parseData: function(data){ //res 即为原始返回的数据
+  		 	data =$.parseJSON(data);  
+     		return data;
+  		 }
+  		,limits: [5,10,20]
+  	    ,limit: 5 
+  		,cols: [[
+  		   {type:'radio'}
+  		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+  	      ,{field:'id', title:'编号', align: 'center',hide:true}
+  	      ,{field:'name', title:'院系名', align: 'center'}]]
+  	},
+  	done: function (elem, data) {
+  		var NEWJSON = []
+  		layui.each(data.data, function (index, item) {
+  			NEWJSON.push(item.name)
+  		})
+  		elem.val(NEWJSON.join(","))
+  	}
+  })
+
+//点击查询按钮，重载表格
+	$('#searchBtn').on('click', function() {
+		table.reload('Reload', {
+			method : 'post',
+			where : {
+				name : $('#name').val(),
+				college : $('#college').val()
+			},
+			page : {
+				curr : 1
+			}
+		});
+		return false;
+	});
+  table.on('edit(teacher)', function(obj){
+	   var email=obj.tr[0].cells[4].innerText;
+	   var smtp=obj.tr[0].cells[5].innerText;
+	   var value = obj.value //得到修改后的值
+	    //得到所在行所有键值
+	    ,field = obj.field;
+	   if(field=="email"){
+		   var reg = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/;
+		   if(!reg.test(value))
+		   {
+		        layer.msg("邮箱格式不对");
+		        obj.tr[0].cells[4].innerText=email;
+		        return false;
+		   }
+	   }
+	   var json=obj.data;
+	   json.accountNo=obj.data.id;
+	   json.userName=obj.data.name;
+	   delete json["id"];
+	   delete json["name"];
+	   delete json["pwd"];
+	   delete json["chief"];
+	   delete json["deputy"];
+	   delete json["college"];
+	    $.ajax({
+           url: '../teacherEmailUpdate',
+           type:'post',
+           dataType:'json',
+           contentType:"application/json;charset=UTF-8",
+			data: JSON.stringify(obj.data),
+           success:function (res) {
+           	 res=$.parseJSON(res);
+           	 if(res.code=="0"){
+           		layer.msg(res.msg);
+           		
+           	 }else{
+           		 layer.msg(res.msg); 
+           		 if(field=='email'){
+           			 obj.tr[0].cells[4].innerText=email;
+            		}
+            		else{
+            			obj.tr[0].cells[5].innerText=smtp;	
+            		}
+           		
+        
+           	 }
+           		
+           },
+           error:function () {
+               layer.msg('系统错误');
+               obj.tr[0].cells[4].innerText=email;
+               obj.tr[0].cells[5].innerText=smtp;	
+           }
+       });
+ });
+  //监听行工具事件
+  table.on('tool(teacher)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'upd'){
+      layer.confirm('确定重置密码嘛', function(index){
+    	$.post("../teacheUpdPwd","id="+data.id,function(data){
+    		data =$.parseJSON(data); 
+    		layer.msg(data.msg);
+    		dataTable.reload('Reload');
+    	},"json")
+       
+      });
+    }
+  });
+ 
+});
+</script>
+
+
+</body>
+</html>

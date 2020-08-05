@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <style type="text/css">
+  	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+  }
+ input{
+    font-size:1.2em;
+  	font-weight:600;
+  }
+ </style>
+ </head>
+<body>
+	<div style="margin: 12px auto;text-align:center;" class="layui-form">
+		<form class="layui-form layui-form-pane">
+			<div class="layui-form-item " >
+			<div class="layui-inline">
+				<label class="layui-form-label">学院名</label>
+				<div class="layui-input-inline">
+					<input type="text" name="name" lay-verify="required" lay-reqtext="院名不能为空"	
+					autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+			<div class="layui-inline">
+				<label class="layui-form-label">邮箱</label>
+				<div class="layui-input-inline">
+					<input type="text" name="email" lay-verify="email" 
+					autocomplete="off"	class="layui-input" >
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-inline">
+					<button  type="submit" lay-submit="" lay-filter="sub" class="layui-btn layui-btn-normal">提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<script src="../static/layui/layui.js"
+		charset="utf-8"></script>
+	<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+	<script>
+	layui.use(['form', 'layedit'], function(){
+		  var form = layui.form
+		  ,$ = layui.jquery
+		  ,layer = layui.layer
+		  ,layedit = layui.layedit;
+		  //监听提交
+		  form.on('submit(sub)', function(data){
+		    layer.confirm('是否提交',{
+		    	  btn: ['确定', '取消']
+		    	 ,yes:function(index, layero){
+		    		 $.ajax({
+		    			   type: "POST",
+		    			   url: "../collegeAdd",
+		    			   dataType:"json",
+		    			   contentType:"application/json;charset=UTF-8",
+		    			   data: JSON.stringify(data.field),
+		    			   async: true,
+		    			   success: function(msg){
+		    			      layer.msg(msg);
+		    			   }
+		    		 		,error:function(){
+		    		 			
+		    		 		}
+		    			});
+		    	  }
+		    });
+		    return false;
+		  });
+	
+	});
+	</script>
+
+
+</body>
+</html>

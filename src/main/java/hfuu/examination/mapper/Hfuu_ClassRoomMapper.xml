@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hfuu.examination.dao.Hfuu_ClassRoomDao">
+	<insert id="insertClassRoomBatch" parameterType="list" useGeneratedKeys="true"
+    keyProperty="id">
+		insert into hfuu_classroom (id,name,date_addr,mid)
+		values 
+		<foreach collection="list" item="d" index="index"
+			separator=",">
+			(default,#{d.name}, #{d.date_addr},'-1')
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		date_addr=CONCAT(date_addr,';',values(date_addr))
+  </insert>
+  <update id="updMediationToClassRoom">
+  		update hfuu_classroom A  LEFT JOIN  hfuu_mediation M ON A.name=M.pastplace or A.name=M.newplace
+				set A.mid=concat(IF((A.mid='-1'),'',CONCAT(A.mid,',')),M.id)
+		where FIND_IN_SET(M.id,A.mid)=0
+  </update>
+  
+  <select id="selRoomInfoLimit" parameterType="String" resultType="hfuu_ClassRoom">
+			select * from hfuu_classroom where 1=1
+			<if test="name!=null and name!=''">
+				and name like concat('%',#{name},'%')
+			</if>
+	</select>
+	<select id="selCountRoom" parameterType="String" resultType="int">
+			select count(*) from hfuu_classroom where 1=1
+			<if test="name!=null and name!=''">
+				and name like concat('%',#{name},'%')
+			</if>
+	</select>
+</mapper> 

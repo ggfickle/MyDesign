@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+  <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style type="text/css">
+  	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+  }
+ input{
+    font-size:1.2em;
+  	font-weight:600;
+  }
+ </style>
+ </head>
+<body>
+	<div style="margin: 12px auto;text-align:center;" class="layui-form">
+		<form class="layui-form layui-form-pane">
+			<div class="layui-form-item " >
+			<div class="layui-inline">
+				<label class="layui-form-label">账号</label>
+				<div class="layui-input-inline">
+					<input type="text" name="userName" id="userName" lay-verify="required" lay-reqtext="账号不能为空"	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item " >
+			<div class="layui-inline">
+				<label class="layui-form-label">密码</label>
+				<div class="layui-input-inline">
+					<input type="text" name="passWord" id="passWord" lay-verify="required" lay-reqtext="密码不能为空"	
+					autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+			<div class="layui-inline">
+				<label class="layui-form-label">邮箱</label>
+				<div class="layui-input-inline">
+					<input type="text" name="email" id="email" lay-verify="email" 
+					autocomplete="off"	class="layui-input" >
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+			<div class="layui-inline">
+				<label class="layui-form-label">授权码</label>
+				<div class="layui-input-inline">
+					<input type="text" name="smtp" id="smtp" lay-verify="required" lay-reqtext="授权码不能为空"	class="layui-input" >
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+			<div class="layui-inline">
+			<label class="layui-form-label">院系</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="college" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="001">
+			</div>
+			</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-inline">
+					<button  type="submit" lay-submit="" lay-filter="sub" class="layui-btn layui-btn-normal">修改</button>
+					<button type="reset"   class="layui-btn layui-btn-primary">重置</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	
+	<script>
+	layui.use(['form', 'layedit','layer','tableSelect'], function(){
+		  var form = layui.form
+		  ,$ = layui.jquery
+		  ,layer = layui.layer
+		  ,layedit = layui.layedit;
+		  //监听提交
+		  form.on('submit(sub)', function(data){
+			data.field.college={"name":$('#college').val()};
+			if($('#college').val()==''){
+				layer.msg("请选择院系");
+				return false;
+			}
+		    layer.confirm('是否修改',{
+		    	  btn: ['确定', '取消']
+		    	 ,yes:function(index, layero){
+		    		 $.ajax({
+		    			   type: "POST",
+		    			   url: "../adminAdd",
+		    			   dataType:"json",
+		    			   contentType:"application/json;charset=UTF-8",
+		    			   data: JSON.stringify(data.field),
+		    			   async: true,
+		    			   success: function(data){
+		    				   data=$.parseJSON(data);
+		    				   layer.msg(data.msg);
+		    			   }
+		    		 		,error:function(){
+		    		 			
+		    		 		}
+		    			});
+		    	  }
+		    });
+		    return false;
+		  });
+		  var form =layui.form;
+		  form.render();
+		  var tableSelect = layui.tableSelect;
+		  tableSelect.render({
+		  	elem: '#college',	//定义输入框input对象 必填
+		  	checkedKey:'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+		  	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+		  	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+		  	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+		  		url:'../collegeListLimit'
+		  	   ,parseData: function(data){ //res 即为原始返回的数据
+		  		 	data =$.parseJSON(data);  
+		     		return data;
+		  		 }
+		  		,limits: [5,10,20]
+		  	    ,limit: 5 
+		  		,cols: [[
+		  		   {type:'radio'}
+		  		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+		  	      ,{field:'id', title:'编号', align: 'center',hide:true}
+		  	      ,{field:'name', title:'院系名', align: 'center'}]]
+		  	},
+		  	done: function (elem, data) {
+		  		var NEWJSON = []
+		  		layui.each(data.data, function (index, item) {
+		  			NEWJSON.push(item.name)
+		  		})
+		  		elem.val(NEWJSON.join(","))
+		  	}
+		  })
+	});
+	</script>
+
+
+</body>
+</html>

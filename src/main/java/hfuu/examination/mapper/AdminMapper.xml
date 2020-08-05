@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.AdminDao">
+	<resultMap id="UserResultMap" type="user" >
+    	<id column="id" property="accountNo"/>
+    	<result column="username" property="userName"/>
+    	<result column="password" property="passWord"/>
+    	<result column="email" property="email"/>
+    	<result column="smtp" property="smtp"/>
+    	<result column="cid" property="cid"/>
+    	<association property="college" column="cid" select="hfuu.examination.dao.HCollegeDao.selById">
+    	</association>
+    </resultMap>
+    
+    <resultMap id="ResultMap" type="user" >
+    	<id column="id" property="userName"/>
+    	<result column="name" property="accountNo"/>
+    	<result column="pwd" property="passWord"/>
+    	<result column="email" property="email"/>
+    	<result column="cid" property="cid"/>
+    	<association property="college" column="cid" select="hfuu.examination.dao.HCollegeDao.selById">
+    	</association>
+    </resultMap>
+  	<select id="selAllAdmin" resultMap="UserResultMap">
+  		select * from admin where rid=2
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	<select id="selectAdminInfoById" resultMap="UserResultMap">
+  		select * from admin where id=#{id}
+  	</select>
+  	
+  	<select id="selectTeacherInfoById" resultMap="ResultMap">
+  		select * from hfuu_teacher where id=#{id}
+  	</select>
+  	<select id="selCountAllAdmin" resultType="int">
+  		select count(id) from admin where rid=2
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	<delete id="delAdminInfo" parameterType="list">
+		delete from admin where 1>2
+		or id in
+	  <foreach collection="list"  item="item" open="(" separator="," close=")"  >
+           #{item}
+      </foreach>
+	</delete>
+	<update id="updAdminEmailById">
+		update admin
+		<set>
+			<if test="email!=null and email!='' ">
+				email=#{email},
+			</if>
+			<if test="smtp!=null and smtp!='' ">
+				smtp=#{smtp},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+	<update id="updTeacherEmailById">
+		update hfuu_teacher
+		<set>
+			<if test="email!=null and email!='' ">
+				email=#{email},
+			</if>
+			<if test="smtp!=null and smtp!='' ">
+				smtp=#{smtp},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+</mapper>

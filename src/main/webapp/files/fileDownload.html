@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+ <div style="margin: 12px auto;" class="layui-form layui-container">
+ 	<form class="layui-form layui-form-pane" action="">
+		<div class="layui-form-item layui-col-md10" >
+				<label class="layui-form-label">导出条件</label>
+				<div class="layui-input-inline layui-col-md3">
+					 <select name="type" id="type"  lay-filter="selectfilter">
+        					<option value="">请选择课程类别</option>
+        					<option value="0">专业课</option>
+        					<option value="1" >公共课</option>	
+      				</select>
+				</div>
+				<div class="layui-input-inline layui-col-md3">
+				<select name="week" id="week" lay-filter="weekfilter">
+						<option value="">选择周数</option>
+				</select>
+				</div>
+				<div class="layui-input-inline layui-col-md3">
+				<select name="courseName" id="courseName">
+					 <option value="">选择课程名</option>
+				</select>
+				</div>
+		</div>
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<button class="layui-btn" id="searchBtn" lay-submit
+					lay-filter="formDemo" data-type="reload" style="margin-left: 15px">
+					 生成文件
+				</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+		
+	</form>
+</div>
+  <script type="text/html" id="toolbar">
+ 
+ </script>
+  <table class="layui-hide" id="excel" lay-filter="college"></table>
+<script type="text/html" id="bar">
+  <a class="layui-btn  layui-btn-xs" lay-event="download">下载</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['form','table','layer','tableSelect'], function(){
+  var form = layui.form,
+   table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  form.render();
+  var dataTable=table.render({
+    elem: '#excel'
+    ,url:'../getExportFileList'
+    ,title: '上传文件数据表'
+    ,toolbar: '#toolbar'
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(data){ //res 即为原始返回的数据
+    	data =$.parseJSON(data);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+       {field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'name', title:'文件名',align: 'center'}
+      ,{field:'path', title:'路径',align:'center',hide:true}
+      ,{field:'size', title:'大小', align: 'center',templet: function (data) {
+    	  return data.size+"kb"; 
+      }}
+      ,{field:'date', title:'创建时间', align: 'center'}
+      ,{field:'number', title:'下载次数', align: 'center'}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  form.on('select(selectfilter)', function (data) {
+		$("#week").empty();
+		 $.ajax({
+			   type: "get",
+			   url: "../courseWeek",
+			   dataType:"json",
+			  // contentType:"application/json;charset=UTF-8",
+			   data:{"type":data.value},
+			   async: true,
+			   success: function(res){
+				     res=$.parseJSON(res);
+				     console.log(res);
+	            	 if(res.code=="0"){
+	            		if(res.data.length==0){
+	            			$("#week").append("<option value=''  selected>无数据</option>");
+	            		}else{
+	            			$("#week").append("<option value=''  selected>选择周数</option>"); 
+	            			$("#week").append("<option value='0'>所有周数</option>"); 
+	            			$.each(res.data, function (index, obj) {
+	            				$("#week").append("<option value='"+obj+"'>第" + obj +"周</option>"); 
+	            		 	})
+	            		}
+	            		 form.render();
+	            	 }else{
+	            		 layer.msg(res.msg); 
+	            		 
+	            	 }
+			   },error:function(){
+		 			layer.msg("操作失败");	
+		 		}
+			});
+	form.render()
+  })
+  form.on('select(weekfilter)', function (data) {
+	  $("#courseName").empty();
+		 $.ajax({
+			   type: "get",
+			   url: "../courseName",
+			   dataType:"json",
+			  // contentType:"application/json;charset=UTF-8",
+			   data:{"week":data.value,
+				   	"type":$("#type").val()},
+			   async: true,
+			   success: function(res){
+				     res=$.parseJSON(res);
+				     console.log(res);
+	            	 if(res.code=="0"){
+	            		if(res.data.length==0){
+	            			$("#courseName").append("<option value=''  selected>无数据</option>");
+	            		}else{
+	            			$("#courseName").append("<option value=''  selected>--选择课程--</option>"); 
+	            			$("#courseName").append("<option value='all'>所有课程</option>"); 
+	            			$.each(res.data, function (index, obj) {
+	            				$("#courseName").append("<option value='"+obj+"'>" + obj +"</option>"); 
+	            		 	})
+	            		}
+	            		 form.render();
+	            	 }else{
+	            		 layer.msg(res.msg); 
+	            		 
+	            	 }
+			   },error:function(){
+		 			layer.msg("操作失败");	
+		 		}
+			});
+	form.render()
+  })
+  function delAll(){
+		$("div.layui-table-body table tbody input[name='layTableCheckbox']:checked").each(function () { // 遍历选中的checkbox
+            var n = $(this).parents("tbody tr").index();  // 获取checkbox所在行的顺序
+            
+            //移除行
+            $("div.layui-table-body table tbody ").find("tr:eq(" + n + ")").remove();
+            //如果是全选移除，就将全选CheckBox还原为未选中状态
+            $("div.layui-table-header table thead div.layui-unselect.layui-form-checkbox").removeClass("layui-form-checked");
+        });
+  }
+//点击查询按钮，重载表格
+	$('#searchBtn').on('click', function() {
+		 $.ajax({
+			   type: "post",
+			   url: "../buildExportFile",
+			   dataType:"json",
+			  // contentType:"application/json;charset=UTF-8",
+			   data:{
+					type : $('#type').val(),
+					week : $('#week').val(),
+					courseName : $('#courseName').val()
+				},
+			   async: false,
+			   success: function(res){
+				     res=$.parseJSON(res);
+	            	 if(res.code=="0"){
+	            		 table.reload('Reload');
+	            		 layer.msg("文件已生成"); 
+	            	 }else{
+	            		 layer.msg("文件生成失败"); 
+	            		 
+	            	 }
+			   },error:function(){
+		 			layer.msg("操作失败");	
+		 		}
+			});
+		
+		return false;
+	});
+  //监听行工具事件
+  table.on('tool(college)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除文件么', function(index){
+    	$.post("../delExportFile","id="+data.id,function(data){
+    		data=$.parseJSON(data);
+    		if(data.code=="0"){
+    			layer.msg('文件删除成功');
+    		}else{
+    			layer.msg('文件删除失败');
+    		}
+    	},"json")
+        obj.del();
+        layer.close(index);
+      });
+    }else if(obj.event === 'download'){
+    	$.post("../addFileNumber","id="+data.id,function(data){
+    		table.reload('Reload');
+    	},"json")
+    	
+    	window.location.href = "../download?id="+data.id;
+    	
+    }
+  });
+  
+});
+</script>
+
+
+</body>
+</html>

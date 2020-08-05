@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.Hfuu_RebuildDao">
+    <insert id="insRebuild" parameterType="list">
+        insert ignore into hfuu_rebuild values
+        <foreach collection="list" item="emp" separator=",">
+            (default,#{emp.classId},#{emp.className},#{emp.sname},#{emp.sid},#{emp.courseName},#{emp.courseId},#{emp.f_name},#{emp.f_id},#{emp.r_dateAddr},#{emp.t_id})
+        </foreach>
+    </insert>
+    <select id="selRebuildInfoBySid" parameterType="list" resultType="hfuu_Rebuild">
+        select * from  hfuu_rebuild where 1>2
+        or f_id in
+	  <foreach collection="list"  item="item" open="(" separator="," close=")"  >
+           #{item}
+      </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.Old_DeptDao">
+	<resultMap id="DeptResultMap" type="old_Dept" >
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="type" property="type"/>
+    <result column="cid" property="cid"/>
+    <association property="college" column="cid" select="hfuu.examination.dao.HCollegeDao.selById">
+    	
+    </association>
+    </resultMap>
+  	<select id="selDeptInfoByLimit" resultMap="DeptResultMap">
+  		select * from old_dept where 1=1
+  		<if test="dept!=null and dept!='' ">
+		    and name like concat('%',#{dept},'%')
+		</if>
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	<select id="selCountDeptInfoByLimit" resultType="int">
+  		select count(id) from old_dept where 1=1
+  		<if test="dept!=null and dept!='' ">
+		    and name like concat('%',#{dept},'%')
+		</if>
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	<update id="updDeptByEdit" parameterType="old_Dept">
+		update old_dept
+		<set>
+			<if test="name!=null and name!='' ">
+				name=#{name},
+			</if>
+			<if test="type!=null and type>=0 ">
+				type=#{type},
+			</if>
+			<if test="cid!=null and cid!=0"> 
+				cid=#{cid},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+	
+	<delete id="delOldDeptInfo" parameterType="list">
+		delete from old_dept where 1>2
+		or id in
+	  <foreach collection="list"  item="item" open="(" separator="," close=")"  >
+           #{item}
+      </foreach>
+	</delete>
+</mapper> 

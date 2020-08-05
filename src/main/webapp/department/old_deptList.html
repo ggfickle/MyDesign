@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+ 	<form class="layui-form" action="">
+		
+		<div class="layui-inline">
+			<label class="layui-form-label">院系</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="collegeid" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="001">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label">系别</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="dept" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="002">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<button class="layui-btn" id="searchBtn" lay-submit
+					lay-filter="formDemo" data-type="reload" style="margin-left: 15px">
+					<i class="layui-icon layui-icon-search"></i> 查询
+				</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+  <script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="add">新增系别</button>
+    <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del">删除选中</button>
+  </div>
+</script>
+  <table class="layui-hide" id="old" lay-filter="college"></table>
+  <script type="text/html" id="switchTpl">
+  <input type="checkbox" name="type" value="{{d.type}}" lay-skin="switch" lay-text="旧院系|新院系" lay-filter="typeFilter" {{ d.type == 1 ? 'checked' : '' }}>
+  </script>
+<script type="text/html" id="bar">
+  <a class="layui-btn  layui-btn-xs" lay-event="edit">修改</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#old'
+    ,url:'../old_deptList'
+    ,title: '上传文件数据表'
+    ,toolbar: '#toolbar'
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(data){ //res 即为原始返回的数据
+    	data =$.parseJSON(data);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+       {type:'checkbox',event:'selRow'}
+      ,{field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'name', title:'系部名', edit: 'text',align: 'center'}
+      ,{field:'type', title:'类别',align:'center',templet: '#switchTpl', unresize: true}
+      ,{field:'cid', title:'院系编号', align: 'center',hide:true}
+      ,{field:'college', title:'院系',align: 'center',templet: function (data) {
+          return data.college.name;
+       }}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  var form =layui.form;
+  form.render();
+  var tableSelect = layui.tableSelect;
+  tableSelect.render({
+  	elem: '#collegeid',	//定义输入框input对象 必填
+  	checkedKey:'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+  	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+  	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+  	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+  		url:'../collegeListLimit'
+  	   ,parseData: function(data){ //res 即为原始返回的数据
+  		 	data =$.parseJSON(data);  
+     		return data;
+  		 }
+  		,limits: [5,10,20]
+  	    ,limit: 5 
+  		,cols: [[
+  		   {type:'radio'}
+  		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+  	      ,{field:'id', title:'编号', align: 'center',hide:true}
+  	      ,{field:'name', title:'院系名', align: 'center'}]]
+  	},
+  	done: function (elem, data) {
+  		var NEWJSON = []
+  		layui.each(data.data, function (index, item) {
+  			NEWJSON.push(item.name)
+  		})
+  		elem.val(NEWJSON.join(","))
+  		console.log(elem)
+  	}
+  })
+
+  function delAll(){
+		$("div.layui-table-body table tbody input[name='layTableCheckbox']:checked").each(function () { // 遍历选中的checkbox
+            var n = $(this).parents("tbody tr").index();  // 获取checkbox所在行的顺序
+            
+            //移除行
+            $("div.layui-table-body table tbody ").find("tr:eq(" + n + ")").remove();
+            //如果是全选移除，就将全选CheckBox还原为未选中状态
+            $("div.layui-table-header table thead div.layui-unselect.layui-form-checkbox").removeClass("layui-form-checked");
+        });
+  }
+//点击查询按钮，重载表格
+	$('#searchBtn').on('click', function() {
+		table.reload('Reload', {
+			method : 'post',
+			where : {
+				dept : $('#dept').val(),
+				collegeid : $('#collegeid').val()
+			},
+			page : {
+				curr : 1
+			}
+		});
+		return false;
+	});
+	
+  //头工具栏事件
+  table.on('toolbar(college)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'add':
+    	  layer.open({
+             	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                 type:2,
+                 title:"新增系别",
+                 area: ['100%','100%'],
+                 fix:true,
+                 content:'old_deptAdd.html',
+                 skin : 'layui-layer-molv',
+                 end:function(){
+                	 dataTable.reload('old');
+                 }
+          });
+      break;
+      case 'del':
+    	var checkStatus=table.checkStatus('Reload'),
+    	data=checkStatus.data,
+    	delList="";
+    	data.forEach(function(n,i){
+             delList+=n.id+",";
+         });
+    	delList=delList.substring(0, delList.length-1);
+        if(delList!=''){
+        	
+            layer.confirm('确定删除所选项吗？',function (index) {
+                $.ajax({
+                    url: '../old_deptDel',
+                    type:'post',
+                    //contentType:"application/json;charset=UTF-8",
+                    dataType:'json',
+                    data:"id="+delList,
+                    success:function (res) {
+                    	 res=$.parseJSON(res);
+                    	 if(res.code=='1'){
+                    		delAll();
+                    		layer.msg(res.msg);
+                    	 }else{
+                    		 layer.msg(res.msg); 
+                    	 }
+                    		
+                    },
+                    error:function () {
+                        layer.msg('系统错误');
+                    }
+                });
+            })
+        }else{
+  
+        }
+      break;
+    };
+  });
+  //监听行工具事件
+  table.on('tool(college)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+    	$.post("../old_deptDel","id="+data.id,function(data){
+    		layer.msg('删除成功');
+    	},"json")
+        obj.del();
+        layer.close(index);
+      });
+    }else if(obj.event === 'edit'){
+    	 layer.open({
+           	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+               type:2,
+               title:"更新系别",
+               area: ['100%','100%'],
+               fix:true,
+               content:'old_deptAdd.html',
+               skin : 'layui-layer-molv',
+               success: function (layero, index) {
+            	var body = layer.getChildFrame('body', index);
+   	            result = JSON.stringify(data);
+   	            result = $.parseJSON(result);
+   	            $.each(result, function (item) {
+   	                body.find('#layui-form-tags' + item).val(result[item]);
+   	             	if(item=='id'){
+   	                 body.find('#id').val(result[item]);
+   	                }
+   	                if (item == 'name') {
+   	                    body.find('#name').val(result[item]);
+   	                }
+   	                if (item == 'cid') {
+	                    body.find('#cid').val(result[item]);
+	                }
+   	             	if(item=='type'){
+   	             	 if(result[item]=='1'){
+   	             		 
+   	             	 }else{
+   	             	 var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+   	                 iframeWin.radioCheck();
+
+   	             	 }
+   	                
+   	                }
+   	                if(item=='college'){
+   	                 body.find('#college').val(result[item].name);
+   	                }
+   	             });
+               },
+               end : function() { //iframe销毁后触发的函数
+            	   dataTable.reload('old');
+               }
+           });
+    }
+  });
+  form.on('switch(typeFilter)', function(obj){
+	 //当前元素
+	 var data = $(obj.elem);
+	 //遍历父级tr，取第一个，然后查找第二个td，取值
+	 var id = data.parents('tr').first().find('td').eq(2).text();
+     var value;    
+     if(obj.value=='0'){
+    	 value=1;
+     }else{
+    	 value=0;
+     }
+	  var json={
+	    "id":id,
+		"type":value  
+	  };
+	  console.log(obj)
+	  $.ajax({
+          url: '../old_deptUpdate',
+          type:'post',
+          dataType:'json',
+          contentType:"application/json;charset=UTF-8",
+			data: JSON.stringify(json),
+          success:function (res) {
+          	 res=$.parseJSON(res);
+          	 if(res.code=="1"){
+          		layer.msg('修改成功');
+          		
+          	 }else{
+          		 layer.msg('修改失败'); 
+          		 table.render();
+          	 }
+          		
+          },
+          error:function () {
+              layer.msg('系统错误');
+              table.render();
+          }
+      });
+  });
+  table.on('edit(college)', function(obj){
+	   var name=obj.tr[0].cells[3].innerText;
+	   var value = obj.value //得到修改后的值
+	    //得到所在行所有键值
+	    ,field = obj.field;
+	    $.ajax({
+            url: '../old_deptUpdate',
+            type:'post',
+            dataType:'json',
+            contentType:"application/json;charset=UTF-8",
+			data: JSON.stringify(obj.data),
+            success:function (res) {
+            	 res=$.parseJSON(res);
+            	 if(res.code=="1"){
+            		layer.msg('修改成功');
+            		
+            	 }else{
+            		 layer.msg('修改失败'); 
+            		 obj.tr[0].cells[3].innerText=name;
+         
+            	 }
+            		
+            },
+            error:function () {
+                layer.msg('系统错误');
+                obj.tr[0].cells[3].innerText=name;
+            }
+        });
+  });
+});
+</script>
+
+
+</body>
+</html>

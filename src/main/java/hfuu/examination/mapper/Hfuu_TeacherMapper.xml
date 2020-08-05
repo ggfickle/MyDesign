@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.Hfuu_TeacherDao">
+	<resultMap id="TeacherResultMap" type="hfuu_teacher" >
+    	<id column="id" property="id"/>
+    	<result column="name" property="name"/>
+    	<result column="pwd" property="pwd"/>
+    	<result column="cid" property="cid"/>
+    	<result column="email" property="email"/>
+    	<result column="smtp" property="smtp"/>
+    	<result column="chief" property="chief"/>
+    	<result column="deputy" property="deputy"/>
+    	<association property="college" column="cid" select="hfuu.examination.dao.HCollegeDao.selById">
+    	</association>
+    </resultMap>
+    <insert id="insTeacherInfo" parameterType="list">
+        insert  into hfuu_teacher (id,name,pwd,cid,chief,deputy,rid)values
+        <foreach collection="list" item="emp" separator=",">
+         (#{emp.id},#{emp.name},#{emp.pwd},#{emp.cid},0,0,3)
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        name=VALUES(name),
+        pwd=VALUES(pwd),
+        cid=VALUES(cid)
+    </insert>
+	<select id="selTeacherInfo" resultMap="TeacherResultMap">
+  		select * from hfuu_teacher where 1=1
+  		<if test="name!=null and name!='' ">
+		    and name like concat('%',#{name},'%')
+		</if>
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	<select id="selCountTeacherInfoByLimit" resultType="int">
+  		select count(id) from hfuu_teacher where 1=1
+  		<if test="name!=null and name!='' ">
+		    and name like concat('%',#{name},'%')
+		</if>
+		<if test="college!=null and college!='' ">
+		    and cid = (select id from hcollege where name=#{college})
+		</if>
+  	</select>
+  	
+  	 <resultMap type="Hfuu_Teacher" id="Hfuu_TeacherArrangementInfoMap">
+    	<id column="id" property="id"/>
+    	<result column="name" property="name"/>
+    	<collection property="mainArrangement" column="id" select="hfuu.examination.dao.ProfessionalCoursesDao.selMainArrangementInfoById"></collection>
+    	<collection property="secondArrangement" column="id" select="hfuu.examination.dao.ProfessionalCoursesDao.selSecondArrangemnetInfoById"></collection>
+    </resultMap>
+    <select id="getArrangementInfo" resultMap="Hfuu_TeacherArrangementInfoMap">
+		select * from hfuu_teacher
+    </select>
+  	
+</mapper>

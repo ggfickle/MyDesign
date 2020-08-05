@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.Hfuu_CourseDao">
+	 <resultMap id="CourseResultMap" type="hfuu_Course" >
+    	<id column="id" property="id"/>
+    	<result column="tid" property="tid"/>
+    	<result column="sid" property="sid"/>
+    	<result column="cid" property="cid"/>
+        <result column="sname" property="sname"/>
+    	<result column="sattri" property="sattri"/>
+    	<result column="type" property="type"/>
+    	<association property="teacher" column="tid" select="hfuu.examination.dao.Hfuu_TeacherDao.selTeacherInfoById"></association>
+    	<association property="subject" column="cid" select="hfuu.examination.dao.Hfuu_ClassDao.selClassInfoById"></association>
+    </resultMap>
+    <insert id="insCourseInfo" parameterType="list">
+        insert  into hfuu_course(id,tid,cid,sname,sattri,date_addr,type) values
+        <foreach collection="list" item="emp" separator=",">
+            (default,#{emp.tid},#{emp.cid},#{emp.sname},#{emp.sattri},#{emp.date_addr},0)
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        date_addr=concat(date_addr,';',values(date_addr))
+    </insert>
+	<select id="selCourseInfoById" parameterType="int" resultMap="CourseResultMap">
+  		select * from hfuu_course where id=#{0}
+  	</select>
+</mapper>

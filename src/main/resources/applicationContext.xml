@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context.xsd">
+	<context:component-scan
+		base-package="hfuu.examination.service.*"></context:component-scan>
+	<context:component-scan
+		base-package="hfuu.examination.filter.*"></context:component-scan>
+
+	<!--加载属性文件 -->
+	<context:property-placeholder
+		location="classpath:db.properties" />
+	<!-- 数据源封装类 -->
+	<bean id="dataSource"
+		class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+		<!-- 数据库基本信息配置 -->
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="driverClassName"
+			value="${jdbc.driverClassName}" />
+		<property name="filters" value="${filters}" />
+		<!-- 最大并发连接数 -->
+		<property name="maxActive" value="${maxActive}" />
+		<!-- 初始化连接数量 -->
+		<property name="initialSize" value="${initialSize}" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="${maxWait}" />
+		<!-- 最小空闲连接数 -->
+		<property name="minIdle" value="${minIdle}" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis"
+			value="${timeBetweenEvictionRunsMillis}" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis"
+			value="${minEvictableIdleTimeMillis}" />
+		<property name="validationQuery" value="${validationQuery}" />
+		<property name="testWhileIdle" value="${testWhileIdle}" />
+		<property name="testOnBorrow" value="${testOnBorrow}" />
+		<property name="testOnReturn" value="${testOnReturn}" />
+		<property name="maxOpenPreparedStatements"
+			value="${maxOpenPreparedStatements}" />
+		<!-- 打开removeAbandoned功能 -->
+		<property name="removeAbandoned" value="${removeAbandoned}" />
+		<!-- 1800秒，也就是30分钟 -->
+		<property name="removeAbandonedTimeout"
+			value="${removeAbandonedTimeout}" />
+		<!-- 关闭abanded连接时输出错误日志 -->
+		<property name="logAbandoned" value="${logAbandoned}" />
+	</bean>
+	<bean id="factory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 自动扫描mappers.xml文件 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mappers.xml文件 -->
+		<property name="mapperLocations"
+			value="classpath:hfuu/examination/mapper/*.xml"></property>
+		<!-- mybatis配置文件 -->
+		<property name="typeAliasesPackage"
+			value="hfuu.examination.domain"></property>
+		
+		 <property name="plugins">
+            <array>
+                <!-- 传入插件的对象 -->
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <props>
+                                <!--用来识别数据库-->
+                            <prop key="helperDialect">mysql</prop>
+                                <!--使页数不会越界-->
+                            <prop key="reasonable">true</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+	</bean>
+	<!-- 扫描器相当于mybatis中的mapper标签 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="hfuu.examination.dao"></property>
+		<!-- <property name="sqlSessionFactory" ref="factory"></property> -->
+		<property name="sqlSessionFactoryBeanName" value="factory"></property>
+	</bean>
+	<!-- 事务管理器 -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 声明式事务 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="ins*"  propagation="REQUIRED"/>
+			<tx:method name="del*"  propagation="REQUIRED"/>
+			<tx:method name="upd*"  propagation="REQUIRED"/>
+			<tx:method name="sel*"  propagation="REQUIRED"/>
+			<tx:method name="find*"  propagation="REQUIRED"/>
+			<tx:method name="*"     propagation="REQUIRED" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 用户授权信息Cache, 采用EhCache -->
+    <bean id="shiroEhcacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml"></property>
+    </bean>
+	<!-- 配置自定义Realm -->
+	<bean id="AdminRealm" class="hfuu.examination.shiro.realms.AdminRealm"/>
+	<bean id="TeacherRealm" class="hfuu.examination.shiro.realms.TeacherRealm"/>
+	
+	<bean id="modularRealmAuthenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+		
+		<property name="authenticationStrategy">
+			<bean class="org.apache.shiro.authc.pam.FirstSuccessfulStrategy"></bean>
+		</property>
+	</bean>
+	<!-- 安全管理器 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		 <!-- 设置缓存管理器为 ehcache -->
+	     <property name="cacheManager" ref="shiroEhcacheManager"></property>
+	     <property name="authenticator" ref="modularRealmAuthenticator"></property>
+	     <property name="realms">
+			<list>
+				<ref bean="AdminRealm"/>
+				<ref bean="TeacherRealm"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="rolesfilter" class="hfuu.examination.shiro.filter.CustomRolesAuthorizationFilter"></bean>	
+	
+	<!-- Shiro过滤器 核心 -->
+	<bean id="shiroFilter"
+		class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- Shiro的核心安全接口,这个属性是必须的 -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 身份认证失败，则跳转到登录页面的配置 -->
+		<property name="loginUrl" value="/login.html" />
+		<property name="successUrl" value="/sussess"></property>
+		<!-- 权限认证失败，则跳转到指定页面 -->
+		<property name="unauthorizedUrl" value="/nopower.jsp" />
+		<property name="filters">
+			<util:map>
+				<entry key="roles" value-ref="rolesfilter"></entry>
+			</util:map>
+		</property>
+		<property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+		<!-- Shiro连接约束配置,即过滤链的定义 -->
+		<!--anon 表示匿名访问，不需要认证以及授权 -->
+		<!--authc表示需要认证 没有进行身份认证是不能进行访问的 -->
+		<!-- 
+		<property name="filterChainDefinitions">
+			<value>
+				/static/** =anon
+				/userlogin=anon
+				/admin*=authc
+				/** = authc
+			</value>
+		</property>
+		-->
+	</bean>
+	<!-- 配置一个bean,该bean实际上是一个map，通过实例工厂的方法 -->
+	<bean id="filterChainDefinitionMap" 
+			factory-bean="filterChainDefinitionMapBulider" factory-method="buildFilterChainDefinitionMap"></bean>
+	<bean id="filterChainDefinitionMapBulider" class="hfuu.examination.shiro.factory.FilterChainDefinitionMapBulider">
+		
+	</bean>
+	<!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor"
+		class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+	<!-- 开启Shiro注解 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor" />
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+	<!-- 配置aop -->
+	<aop:config>
+		<aop:pointcut
+			expression="execution(* hfuu.examination.service.impl.*.*())"
+			id="mypoint" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="mypoint" />
+	</aop:config>
+</beans>

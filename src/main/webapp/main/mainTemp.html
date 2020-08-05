@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>HFUU 考务系统</title>
+<link rel="stylesheet"
+	href="../static/layui/css/layui.css">
+<link rel="stylesheet" href="../static/css/fonts/font-awesome-4.7.0/css/font-awesome.css">
+<link href="../static/images/hfuu.jpg" rel="ICON" >
+<script src="../static/layui/layui.all.js" charset="utf-8"></script>
+<script src="../static/layui/lay/modules/jquery.js" charset="utf-8"></script>
+<style type="text/css">
+.fold{
+	width:115px;
+	padding-left:40%;
+}
+.menu{
+	
+}
+</style>
+</head>
+<body class="layui-layout-body">
+	<div class="layui-layout layui-layout-admin">
+		<div class="layui-header layui-bg-cyan">
+			<div class="layui-logo">HFUU考务系统</div>
+			<!-- 头部区域（可配合layui已有的水平导航） -->
+			<ul class="layui-nav layui-layout-right ">
+				<li class="layui-nav-item"><a href="javascript:;"><span id="name">
+				</span>
+				</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="" id="information">基本资料</a>
+						</dd>
+					</dl></li>
+				<li class="layui-nav-item"><a href="../logout">退出</a></li>
+			</ul>
+		</div>
+
+		<div class="layui-side layui-bg-black">
+			<div class="layui-side-scroll">
+				<div title="菜单缩放" class="kit-side-fold fold" style="width:115px;padding-left:40%"><i class="fa fa-navicon fa-2x" aria-hidden="true"></i></div>
+				<!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+				<ul class="layui-nav layui-nav-tree " lay-shrink="all"
+					lay-filter="test">
+				<li class="layui-nav-item layui-nav-itemed menu">
+					<a class="menu"  href="javascript:;"><i class="fa fa-eercast fa-lg"></i><span>首页</span></a>
+						<dl class="layui-nav-child">
+							<dd>
+								<a class="site-demo-active"
+									data-url="../echars/echars.html" 
+									data-id="11" data-title="首页" href="#" id="default"><i class="fa fa-pie-chart fa-lg"></i><span>首页</span></a>
+							</dd>
+						</dl></li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="layui-body">
+			<div class="layui-tab" lay-filter="demo" lay-allowclose="true">
+				<ul class="layui-tab-title">
+				</ul>
+			<div class="layui-tab-content"></div>
+			</div>
+			 
+		</div>
+		<div class="layui-footer " style="text-align: center">© HFUU
+			EXAMINATION</div>
+	</div>
+	<script>
+//JavaScript代码区域
+var $ = layui.jquery;
+var ids=0;
+//加载用户名
+$.ajax({
+	type: "post",
+	url: "../getUserName",
+	cache: false,
+	dataType:"json",
+	error: function() {alert('系统错误！');},
+	success: function(data) {
+		data =$.parseJSON(data);
+		$("#name").html(data.data);
+	}
+	});
+layui.use(['layer','element'], function(){
+	"use strict";
+    var layer = layui.layer
+	var $ = layui.jquery
+  ,element = layui.element;
+    $.ajax({
+ 	   type: "POST",
+ 	   url: "../getMenu",
+ 	   dataType:"json",
+ 	  // contentType:"application/json;charset=UTF-8",
+ 	   async: true,
+ 	   success: function(res){
+ 		     res=$.parseJSON(res);
+       	 if(res.code=="0"){
+       		var str="";
+       		$.each(res.data[0].children, function (index, obj) {
+       			str+="<li class='layui-nav-item menu'>  "
+  						 +"<a class='menu'  href='javascript:;'><i class='"+obj.image
+  						 +"'></i><span>"+obj.name+"</span></a>"
+  						 +"<dl class='layui-nav-child'>";
+  					$.each(obj.children, function (index,emp) {
+  	  					str+="<dd><a class='site-demo-active'  "
+  	  						 +"data-url=.."+emp.url.url+" "
+  	  						 +"data-id="+emp.id+"  data-title="+emp.name+"  href='#'>"
+  	  						 +"<i class='"+emp.image+"'></i><span>"+emp.name+"</span></a></dd>";
+  	  				})
+ 			   str+="</dl></li>";
+ 		      
+  		 	}) 
+  			$(".layui-nav-tree").append(str);
+            element.render('nav');
+       	 }else{
+       		 layer.msg(res.msg);  
+       	 }
+ 	   },error:function(){
+ 			layer.msg("操作失败");	
+ 		}
+ 	});
+//触发事件
+  var active = {
+    tabAdd: function(){
+      //新增一个Tab项
+      element.tabAdd('demo', {
+        title: '新选项'+ (Math.random()*1000|0) //用于演示
+        ,content: '内容'+ (Math.random()*1000|0)
+        ,id: new Date().getTime() //实际使用一般是规定好的id，这里以时间戳模拟下
+      	
+      })
+    }
+    ,tabDelete: function(id){
+      //删除指定Tab项
+      element.tabDelete('demo', id); //删除
+      othis.addClass('layui-btn-disabled');
+    }
+    ,tabChange: function(id,url){
+      //切换到指定Tab项
+      element.tabChange('demo', id); //切换到
+ 	  if(id!='10'){
+      	var othis = $('.layui-tab-title').find('>li[lay-id="' + id + '"]'),
+      	index = othis.parent().children('li').index(othis),
+      	parents = othis.parents('.layui-tab').eq(0),
+      	item = parents.children('.layui-tab-content').children('.layui-tab-item'),
+      	src = item.eq(index).find('iframe').attr("src");
+      	item.eq(index).find('iframe').get(0).contentWindow.history.go(0);
+ 	  }
+ 	 },
+    ltabAdd:function(url,id,name){
+//新增一个Tab项 传入三个参数，分别对应其标题，tab页面的地址，还有一个规定的id，是标签中data-id的属性值
+//关于tabAdd的方法所传入的参数可看layui的开发文档中基础方法部分
+		element.tabAdd('demo', {
+		title: name,
+		content: '<iframe data-frameid="'+id+'" scrolling="auto" frameborder="0" src="'+url+' "style="width:100%;height:99%;"></iframe>',
+		id: id //规定好的id
+		});
+		FrameWH();  //计算ifram层的大小
+	}
+  };
+  $('#information').on('click',function(){
+	  layer.open({
+        	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+            type:2,
+            title:"基本资料",
+            area: ['50%','80%'],
+            content:'adminEdit.html',
+            end:function(){
+               	
+           }
+        });
+	  return false;
+  })
+  $('.layui-nav-tree').on('click','.site-demo-active', function(){
+	    var dataid = $(this);
+	   
+	    if ($(".layui-tab-title li[lay-id]").length <= 0) {
+	    	//如果比零小，则直接打开新的tab项
+	    	active.ltabAdd(dataid.attr("data-url"), dataid.attr("data-id"),dataid.attr("data-title"));
+	    }else{
+	    	var isData = false; //初始化一个标志，为false说明未打开该tab项 为true则说明已有
+	    	$.each($(".layui-tab-title li[lay-id]"), function () {
+	    		if ($(this).attr("lay-id") == dataid.attr("data-id")) {
+	    			isData =true;
+	    		}
+	    	})
+	    	 if (isData == false) {
+	    		 active.ltabAdd(dataid.attr("data-url"), dataid.attr("data-id"),dataid.attr("data-title"));
+	    	 }
+	    	
+	    }
+	    active.tabChange(dataid.attr("data-id"),dataid.attr("data-url"));
+  });
+  function FrameWH() {
+        var h = $(window).height() -41- 10 - 60 -10-44 -10;
+            $("iframe").css("height",h+"px");
+          }
+
+   $(window).resize(function () {
+         FrameWH();
+   })
+   var isShow = true;  //定义一个标志位
+   $('.kit-side-fold').click(function(){
+       //选择出所有的span，并判断是不是hidden
+       $('.layui-nav-item.menu span').each(function(){
+           if($(this).is(':hidden')){
+               $(this).show();
+           }else{
+               $(this).hide();
+           }
+       });
+       //判断isshow的状态
+       if(isShow){
+           $('.layui-side.layui-bg-black').width(50); //设置宽度
+           $('.kit-side-fold').css('padding-left', '5%');  //修改图标的位置
+           //$('.layui-nav-itemed a>i').css('padding-left',"-12px");
+           $('.menu a').css('padding-left',"6%")
+           $('.menu a>i').css('padding-top',"12px");
+           //将footer和body的宽度修改
+           $('.layui-body').css('left', 50+'px');
+           $('.layui-footer').css('left', 50+'px');
+           //将二级导航栏隐藏
+           $('dd span').each(function(){
+               $(this).hide();
+           });
+           //修改标志位
+           isShow =false;
+       }else{
+           $('.layui-side.layui-bg-black').width(200);
+           $('.kit-side-fold').css('padding-left', '40%');
+           $('.layui-body').css('left', 200+'px');
+           $('.menu a').css('padding-left',"20px")
+           $('.layui-footer').css('left', 200+'px');
+           $('dd span').each(function(){
+               $(this).show();
+           });
+           isShow =true;
+       }
+   });
+   $("#default").click();
+});
+
+
+</script>
+</body>
+</html>

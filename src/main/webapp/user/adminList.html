@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+ 	<form class="layui-form" action="">
+		<div class="layui-inline">
+			<label class="layui-form-label">院系</label>
+			<div class="layui-input-inline">
+			<input type="text" name id="college" placeholder="请输入" autocomplete="off" class="layui-input" ts-selected="001">
+			</div>
+		</div>
+		<div class="layui-inline">
+			<div class="layui-input-inline">
+				<button class="layui-btn" id="searchBtn" lay-submit
+					lay-filter="formDemo" data-type="reload" style="margin-left: 15px">
+					<i class="layui-icon layui-icon-search"></i> 查询
+				</button>
+				<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+			</div>
+		</div>
+	</form>
+<script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="add">新增管理员</button>
+    <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del">删除管理员</button>
+  </div>
+</script>
+  <table class="layui-hide" id="test" lay-filter="admin"></table>
+ <script type="text/html" id="bar">
+   <a class="layui-btn  layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+   <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="upd">重置密码</a>
+ </script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../adminList'
+    ,title: '上传文件数据表'
+    ,toolbar: '#toolbar'
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(res){ //res 即为原始返回的数据
+    	data =$.parseJSON(res);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+       {type:'checkbox',event:'selRow'}
+       ,{field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'accountNo', title:'编号', align: 'center',hide:true}
+      ,{field:'userName', title:'账号',align: 'center'}
+      ,{field:'passWord', title:'密码',align: 'center'}
+      ,{field:'email', title:'邮箱',edit: 'text',align: 'center'}
+      ,{field:'smtp', title:'授权码',edit: 'text',align: 'center'}
+      ,{field:'college', title:'院系',align: 'center',templet: function (data) {
+          return data.college.name;
+       }}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  var form =layui.form;
+  form.render();
+  var tableSelect = layui.tableSelect;
+  tableSelect.render({
+  	elem: '#college',	//定义输入框input对象 必填
+  	checkedKey:'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+  	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+  	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+  	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+  		url:'../collegeListLimit'
+  	   ,parseData: function(data){ //res 即为原始返回的数据
+  		 	data =$.parseJSON(data);  
+     		return data;
+  		 }
+  		,limits: [5,10,20]
+  	    ,limit: 5 
+  		,cols: [[
+  		   {type:'radio'}
+  		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+  	      ,{field:'id', title:'编号', align: 'center',hide:true}
+  	      ,{field:'name', title:'院系名', align: 'center'}]]
+  	},
+  	done: function (elem, data) {
+  		var NEWJSON = []
+  		layui.each(data.data, function (index, item) {
+  			NEWJSON.push(item.name)
+  		})
+  		elem.val(NEWJSON.join(","))
+  	}
+  })
+	 //头工具栏事件
+  table.on('toolbar(admin)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'add':
+    	  layer.open({
+          	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+              type:2,
+              title:"新增管理",
+              area: ['50%','80%'],
+              content:'adminAdd.html',
+              end:function(){
+            	  dataTable.reload();
+              }
+          });
+      break;
+      case 'del':
+    	var checkStatus=table.checkStatus('Reload'),
+    	data=checkStatus.data,
+    	delList="";
+    	data.forEach(function(n,i){
+             delList+=n.accountNo+",";
+         });
+    	delList=delList.substring(0, delList.length-1);
+        if(delList!=''){
+        	
+            layer.confirm('确定删除所选项吗？',function (index) {
+                $.ajax({
+                    url: '../adminDel',
+                    type:'post',
+                    //contentType:"application/json;charset=UTF-8",
+                    dataType:'json',
+                    data:"id="+delList,
+                    success:function (res) {
+                    	 res=$.parseJSON(res);
+                    	 if(res.code=='1'){
+                    		delAll();
+                    		layer.msg(res.msg);
+                    	 }else{
+                    		 layer.msg(res.msg); 
+                    	 }
+                    		
+                    },
+                    error:function () {
+                        layer.msg('系统错误');
+                    }
+                });
+            })
+        }else{
+  
+        }
+      break;
+    };
+  });
+//点击查询按钮，重载表格
+	$('#searchBtn').on('click', function() {
+		table.reload('Reload', {
+			method : 'post',
+			where : {
+				college : $('#college').val()
+			},
+			page : {
+				curr : 1
+			}
+		});
+		return false;
+	});
+	table.on('edit(admin)', function(obj){
+		   var email=obj.tr[0].cells[5].innerText;
+		   var smtp=obj.tr[0].cells[6].innerText;
+		   var value = obj.value //得到修改后的值
+		    //得到所在行所有键值
+		    ,field = obj.field;
+		    $.ajax({
+	            url: '../adminEmailUpdate',
+	            type:'post',
+	            dataType:'json',
+	            contentType:"application/json;charset=UTF-8",
+				data: JSON.stringify(obj.data),
+	            success:function (res) {
+	            	 res=$.parseJSON(res);
+	            	 if(res.code=="0"){
+	            		layer.msg(res.msg);
+	            		
+	            	 }else{
+	            		 layer.msg(res.msg); 
+	            		 if(field=='email'){
+	            			 obj.tr[0].cells[5].innerText=email;
+	             		}
+	             		else{
+	             			obj.tr[0].cells[6].innerText=smtp;	
+	             		}
+	            		
+	         
+	            	 }
+	            		
+	            },
+	            error:function () {
+	                layer.msg('系统错误');
+	                obj.tr[0].cells[5].innerText=email;
+	            }
+	        });
+	  });
+  //监听行工具事件
+  table.on('tool(admin)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'upd'){
+      layer.confirm('确定重置密码嘛', function(index){
+    	$.post("../adminUpdPwd","id="+data.accountNo,function(data){
+    		data =$.parseJSON(data); 
+    		layer.msg(data.msg);
+    		dataTable.reload('Reload');
+    	},"json")
+       
+      });
+    }else if(obj.event === 'del'){
+        layer.confirm('真的删除行么', function(index){
+        	$.post("../adminDel","id="+data.accountNo,function(data){
+        		data =$.parseJSON(data);
+        		layer.msg(data.msg);
+        	},"json")
+            obj.del();
+            layer.close(index);
+          });
+        }
+  });
+ 
+});
+</script>
+
+
+</body>
+</html>

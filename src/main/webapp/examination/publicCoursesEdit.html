@@ -1,0 +1,497 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+  <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+  <script src="../static/layui/lay/modules/jquery.js" charset="utf-8"></script>
+  <style>
+   	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+  }
+  input{
+    font-size:1.2em;
+  	font-weight:600;
+  }
+ </style>
+ </head>
+<body>
+	<div style="margin: 12px auto;" class="layui-form layui-container">
+		<form class="layui-form layui-form-pane" lay-filter="layui-form-public">
+			<div class="layui-form-item  layui-col-md-offset2"  style="display:none" >
+			<div class="layui-inline" >
+				<label class="layui-form-label">编号</label>
+				<div class="layui-input-inline">
+					<input type="text" name="id" id="id" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			</div>
+			<div class="layui-form-item layui-col-md8 layui-col-md-offset2 " >
+			
+				<label class="layui-form-label">课程</label>
+				<div class="layui-input-block">
+					<input type="text" name="sname" id="sname"  autocomplete="off" class="layui-input"  disabled>
+				</div>
+			
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden" name="tid" id="tid" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden"  id="type" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-form-item layui-col-md8 layui-col-md-offset2 " >
+			
+				<label class="layui-form-label">授课教师</label>
+				<div class="layui-input-block">
+					<input type="text" name="teacher" id="teacher"  autocomplete="off" class="layui-input"  disabled>
+				</div>
+			
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden" name="sid" id="sid" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-form-item  layui-col-md8 layui-col-md-offset2" >
+			
+				<label class="layui-form-label">班级</label>
+				<div class="layui-input-block">
+					<input type="text" name="name" id="name"  autocomplete="off" class="layui-input" disabled>
+				</div>
+			
+			</div>
+			<div class="layui-form-item layui-col-md10 layui-col-md-offset2" id="addInput"></div>
+			<div class="layui-form-item layui-col-md4 layui-col-md-offset2" >
+				<label class="layui-form-label">重修人数</label>
+				<div class='layui-input-inline layui-col-md1'>
+ 	   				<input type='text' name='rnum' id='rnum' placeholder='请输入重修人数'  autocomplete='off' class='layui-input'>
+ 	   			</div>
+ 	   		</div>
+			<div class="layui-form-item layui-col-md4 layui-col-md-offset2" >
+				<label class="layui-form-label">考试地点</label>
+				<div class="layui-input-inline">
+					<input type="text" name="place" id="place"  placeholder="请输入考试地点"  ts-selected="001" autocomplete="off" class="layui-input" lay-verify="required" lay-reqtext="考试地点不能为空">
+				</div>
+			</div>
+			<div class="layui-form-item layui-col-md10 layui-col-md-offset2" >
+				<label class="layui-form-label">考试时间</label>
+				<div class="layui-input-inline layui-col-md3">
+					<input type="text" name="week" id="week"  placeholder="请选择周次"  ts-selected="001" autocomplete="off" class="layui-input" lay-verify="required" lay-reqtext="考试时间不能为空">
+				</div>
+				<div class="layui-input-inline layui-col-md3">
+					 <select name="whichDay" id="whichDay"  lay-filter="selectfilter">
+        					<option value="">请选择星期</option>
+        					<option value="1">星期一</option>
+        					<option value="2" >星期二</option>
+        					<option value="3" >星期三</option>
+        					<option value="4" >星期四</option>
+        					<option value="5" >星期五</option>
+        					<option value="6" >星期六</option>
+        					<option value="7" >星期天</option>
+        					
+      				</select>
+				</div>
+				<div class="layui-input-inline layui-col-md3">
+				<select name="time" id="time" lay-filter="timefilter">
+						<option value="">选择具体时间</option>
+				</select>
+				</div>
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden"  name="pid" id="pid" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden"  name="fapid" id="fapid" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-inline" >
+				<div class="layui-input-inline">
+					<input type="hidden"  name="sapid" id="sapid" 	
+					autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-form-item layui-col-md10 layui-col-md-offset2" >
+				<label class="layui-form-label">主监考</label>
+				<div class="layui-input-inline layui-col-md3">
+					<input type="text" name="pname" id="pname"   autocomplete="off" class="layui-input" lay-verify="required" lay-reqtext="主监考不能为空" disabled>
+				</div>
+				<label class="layui-form-label">副监考</label>
+				<div class="layui-input-inline layui-col-md3">
+					<input type="text" name="apname" id="apname"   autocomplete="off" class="layui-input" lay-verify="required" lay-reqtext="副监考不能为空" disabled>
+				</div>
+			</div>
+			<div class="layui-form-item layui-col-md8 layui-col-md-offset2" >
+				<label class="layui-form-label">院系</label>
+				<div class="layui-input-block">
+					<input type="text" name="college" id="college"  autocomplete="off" class="layui-input" disabled>
+				</div>
+			</div>
+			<div class="layui-form-item layui-row">
+				<button  type="submit" lay-submit="" lay-filter="sub" class="layui-btn layui-btn-normal layui-col-md2 layui-col-md-offset2">提交</button>
+				 <div class="layui-col-md4 layui-col-md-offset4">
+    			</div>
+				<button type="button" id="close" class="layui-btn layui-btn-warm layui-col-md2 layui-col-md-offset2">关闭</button>
+			</div>
+		</form>
+	</div>
+	<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+	<script>
+	var form = layui.form
+	var $ = layui.jquery;
+	function ajaxGet(id){
+		    $.ajax({
+ 			   type: "POST",
+ 			   url: "../getPublicCourses",
+ 			   dataType:"json",
+ 			  // contentType:"application/json;charset=UTF-8",
+ 			   data: "id="+id,
+ 			   async: true,
+ 			   success: function(res){
+ 				     res=$.parseJSON(res);
+ 				     console.log(res);
+ 				     var ids="";
+ 				     var sid="";
+ 				     var classes="";
+ 	            	 if(res.code=="0"||res.code=="2"){
+ 	            		
+ 	            			$("#id").val(res.count<2?res.data[0].id:function(){res.data.forEach(function(n,i){
+ 	                            ids+=n.id+",";
+ 	            	         });return ids.substring(0, ids.length-1);});
+ 	            			$("#sname").val(res.data[0].course.sname);
+ 	            			$("#sid").val(res.count<2?res.data[0].course.subject.id:function(){res.data.forEach(function(n,i){
+ 	                            sid+=n.course.subject.id+",";
+	            	         });return sid.substring(0, sid.length-1);});
+ 	            			$("#tid").val(res.data[0].course.teacher.id);
+ 	            			$("#teacher").val(res.data[0].course.teacher.name);
+ 	            			$("#name").val(res.count<2?res.data[0].course.subject.name:function(){res.data.forEach(function(n,i){
+ 	            				classes+=n.course.subject.name+",";
+	            	         });return classes.substring(0, classes.length-1);});
+ 	            			$("#college").val(res.data[0].course.subject.college.name);
+ 	            			$("#type").val("1");
+ 	            			if(res.data[0].proctor!=undefined&&res.data[0].proctor!=''){
+ 	            				$("#pname").val(res.data[0].proctor.name);
+ 	            			}
+ 	            			if(res.data[0].place!=undefined&&res.data[0].place!=''){
+ 	            				$("#place").val(res.data[0].place);
+ 	            			}
+ 	            			
+ 	            			
+ 	            			var apname;
+ 	            			if(res.data[0].firstAssociateProctor==undefined&&res.data[0].secondAssociateProctor==undefined){
+ 	            				apname="";
+ 	            	          }else if(res.data[0].firstAssociateProctor!=undefined&&res.data[0].secondAssociateProctor!=undefined){
+ 	            	        	 apname=res.data[0].firstAssociateProctor.name+','+res.data[0].secondAssociateProctor.name;
+ 	            	          }else if(res.data[0].firstAssociateProctor!=undefined){
+ 	            	        	 apname=res.data[0].firstAssociateProctor.name;
+ 	            	          }else if(res.data[0].secondAssociateProctor!=undefined){
+ 	            	        	 apname=res.data[0].secondAssociateProctor.name;
+ 	            	          }
+ 	            			$("#apname").val(apname);
+ 	            			$("#addInput").append("<label class='layui-form-label'>人数</label>")
+ 	            					res.data.forEach(function(n,i){
+ 	            						$("#addInput").append("<div class='layui-input-inline layui-col-md1'>"
+ 	            								+"<input type='text' name='peonum"+i+"' id='peonum"+i+"' "
+ 	            								+"placeholder='"+n.course.subject.name+"人数' lay-verify='required' lay-reqtext='班级人数不能为空' autocomplete='off' class='layui-input'></div>")
+ 	  	            	            });
+ 	            			if(res.code=="2"){
+ 	            				$("#pname").removeAttr("disabled");
+ 	            				$("#apname").removeAttr("disabled");
+ 	            				$("#type").val("2");
+ 	            			}
+ 	            			for(var i=0;i<res.data.length;i++){
+ 	            				if(i==0){
+ 	            					if(res.data[0].number!=undefined&&res.data[0].number!=''&&res.data[i].number.split("+").length>1){
+ 	            						$(eval("peonum"+i)).val(res.data[i].number.split("+")[0])
+ 	            						$("#rnum").val(res.data[i].number.split("+")[1])
+ 	            						continue;
+ 	            					}
+ 	            				}
+ 	            				$(eval("peonum"+i)).val(res.data[i].number);
+
+ 	            			}
+ 	            			if(res.data[0].time!=undefined&&res.data[0].time!=''){
+ 	            				$("#week").val("第"+res.data[0].time.split(":")[0]+"周");
+ 	            				$("#whichDay").val(res.data[0].time.split(":")[1]);
+ 	            				$("#time").append("<option value="+res.data[0].time.split(":")[2]+"  selected>"+res.data[0].time.split(":")[2]+"节</option>"); 
+ 	            				
+ 	            			}
+ 	            			form.render();
+ 	            		
+ 	            	 }else{
+ 	            		 layer.msg(res.msg); 
+ 	            		 
+ 	            	 }
+ 			   },error:function(){
+ 		 			layer.msg("操作失败");	
+ 		 		}
+ 			});
+		   
+	}
+	
+	function getFreeTime(data){
+		 
+		    var sid=$("#sid").val()
+            var place=$("#place").val();
+			var week=$("#week").val();
+			week=week.substr(1,week.length-2);
+			var whichDay=$("#whichDay").val();
+			if(place==""||place==undefined){
+				
+				
+			}else if(week==""||week==undefined){
+				
+				
+			}else if(whichDay==""||whichDay==undefined){
+				
+			}else{
+				$("#time").empty();
+				 $.ajax({
+		 			   type: "get",
+		 			   url: "../getFreeTime?sid="+sid+"&place="+place+"&week="+week+"&whichDay="+whichDay,
+		 			   dataType:"json",
+		 			  // contentType:"application/json;charset=UTF-8",
+		 			   async: true,
+		 			   success: function(res){
+		 				     res=$.parseJSON(res);
+		 				     console.log(res);
+		 	            	 if(res.code=="0"){
+		 	            		if(res.data.length==0){
+		 	            			$("#time").append("<option value=''  selected>无数据</option>");
+		 	            		}else{
+		 	            			$("#time").append("<option value=''  selected>选择具体时间</option>"); 
+		 	            			$.each(res.data, function (index, obj) {
+		 	            				$("#time").append("<option value='"+obj+"'>" + obj +"节</option>"); 
+		 	            		 	})
+		 	            		}
+		 	            		 form.render();
+		 	            	 }else{
+		 	            		 layer.msg(res.msg); 
+		 	            		 
+		 	            	 }
+		 			   },error:function(){
+		 		 			layer.msg("操作失败");	
+		 		 		}
+		 			});
+				 
+			}
+			form.render()
+	  }
+ 	//将time的点击通过事件委托给其父元素
+   </script>
+   <script src="../static/layui/lay/modules/definedtableSelect.js" charset="utf-8"></script>
+   <script>
+	layui.use(['form', 'layedit',"table"], function(){
+		  var form = layui.form
+		  ,layer = layui.layer
+		  ,layedit = layui.layedit;
+		   var table = layui.table;
+		   var form =layui.form;
+		   form.render();
+		   var tableSelect = layui.tableSelect;
+		 
+		  tableSelect.render({
+		   	elem: '#place',	//定义输入框input对象 必填
+		   	checkedKey:"id", //表格的唯一建值，非常重要，影响到选中状态 必填
+		   	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+		   	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+		   	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+		   		url:'../roomListLimit'
+		   	   ,parseData: function(data){ //data 即为原始返回的数据
+		   		    data =$.parseJSON(data);
+		    		return data;
+		   		 }
+		   		,limits: [5,10,20]
+		   	    ,limit: 5 
+		   		,cols: [[
+		   		   {type:'radio'}
+		   		  ,{field:'id', title:'序号', align:'center',hide:true}
+		   		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+		   	      ,{field:'name', title:'教室', align: 'center'}]]
+		   	},
+		   	done: function (elem, data) {
+		  		var NEWJSON = []
+		  		layui.each(data.data, function (index, item) {
+		  			NEWJSON.push(item.name)
+		  		})
+		  		elem.val(NEWJSON.join(","))
+		  	}
+		   })
+		    tableSelect.render({
+		   	elem: '#week',	//定义输入框input对象 必填
+		   	checkedKey:"id", //表格的唯一建值，非常重要，影响到选中状态 必填
+		   	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+		   	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+		   	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+		   		url:'../calendarListLimit'
+		   	   ,parseData: function(data){ //data 即为原始返回的数据
+		   		   data =$.parseJSON(data);
+		    		return data;
+		   		 }
+		   		,limits: [5,10,20]
+		   	    ,limit: 5 
+		   		,cols: [[
+		   		   {type:'radio'}
+		   		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+		   		  ,{field:'id', title:'序号', align:'center',hide:true}
+		   	      ,{field:'week', title:'周次', align: 'center',templet: function (data) {
+		   	          return "第"+data.week+"周";
+		          }}]]
+		   	},
+		   	done: function (elem, data) {
+		  		var NEWJSON = []
+		  		layui.each(data.data, function (index, item) {
+		  			NEWJSON.push("第"+item.week+"周")
+		  		})
+		  		elem.val(NEWJSON.join(","))
+		  	}
+		   })
+		  
+		
+		 form.on('select(selectfilter)', function (data) {
+			 getFreeTime(data.value);
+		 })
+		  form.on('select(timefilter)', function (data) {
+			  var sid=$("#sid").val()
+			  var tid=$("#tid").val()
+			  var week=$("#week").val();
+			  week=week.substr(1,week.length-2);
+			  var whichDay=$("#whichDay").val();
+			  var time=data.value;
+			  var place=$("#place").val();
+			  var type=$("#type").val();
+			  if(time==''){
+				  return false;
+			  }
+			  $.ajax({
+	 			   type: "get",
+	 			   url: "../getRebuidNumber?sid="+sid+"&tid="+tid+"&place="+place+"&week="+week+"&whichDay="+whichDay+"&time="+time+"&type="+type,
+	 			   dataType:"json",
+	 			  // contentType:"application/json;charset=UTF-8",
+	 			   async: true,
+	 			   success: function(res){
+	 				     res=$.parseJSON(res);
+	 				     console.log(res);
+	 	            	 if(res.code=="0"){
+	 	            		 if(res.count!='0'){
+	 	            			layer.msg("该时间有"+res.count+"人无法参加考试"); 
+	 	            		 }
+	 	            		 $("#pname").val(res.data[0].name);
+	 	            		 $("#pid").val(res.data[0].id);
+	 	            		 if(res.data.length>1){
+	 	            		 	if(res.data.length==3){
+	 	            			 	$("#apname").val(res.data[1].name+","+res.data[2].name);
+	 	            			 	 $("#fapid").val(res.data[1].id);
+	 	            			 	 $("#sapid").val(res.data[2].id);
+	 	            		 	}else{
+	 	            				$("#apname").val(res.data[1].name);
+	 	            				$("#fapid").val(res.data[1].id);
+	 	            		 	}
+	 	            		 }
+	 	            		form.render();
+	 	            	 }else{
+	 	            		 layer.msg(res.msg);  
+	 	            	 }
+	 			   },error:function(){
+	 		 			layer.msg("操作失败");	
+	 		 		}
+	 			});
+		 })
+		
+	
+		 $("#close").on('click',function(){
+			  var index = parent.layer.getFrameIndex(window.name);  
+			  parent.layer.close(index);//关闭当前页 
+		 })
+
+		 form.on('submit(sub)', function(data){
+		    layer.confirm('是否提交',{
+		    	  btn: ['确定', '取消']
+		    	 ,yes:function(index, layero){
+		    		 var publicCourse=data.field;
+		    		 delete publicCourse["course"];
+		    		 delete publicCourse["rnum"];
+		    		 delete publicCourse["week"];
+		    		 delete publicCourse["whichDay"];
+		    		 delete publicCourse["time"];
+		    		 delete publicCourse["tid"];
+		    		 delete publicCourse["teacher"];
+		    		 delete publicCourse["apname"];
+		    		 delete publicCourse["pname"];
+		    		 delete publicCourse["college"];
+		    		 delete publicCourse["name"];
+		             var week=$("#week").val().replace("第","").replace("周","").trim();
+		             publicCourse.time=week+":"+$("#whichDay").val()+":"+$("#time").val();
+		             publicCourse.pid=$("#pid").val();
+		             publicCourse.fapid=$("#fapid").val();
+		             publicCourse.sapid=$("#sapid").val();
+		             publicCourse.number="";
+		             for(var i=0;i<publicCourse.id.split(",").length;i++){
+		            	 
+		            	 publicCourse.number+=$(eval("peonum"+i)).val()+"+";
+		            	 delete publicCourse["peonum"+i];
+		             }
+		             if($("#rnum").val()==null||$("#runm").val==""){
+		            	 publicCourse.number=publicCourse.number.substring(0, publicCourse.number.length-1);
+		             }else{
+		            	 publicCourse.number+=$("#rnum").val();
+		             }
+		             publicCourse.proctor={"name":$("#pname").val()};
+		             if($("#apname").val().indexOf(",")!=-1||$("#apname").val().indexOf("，")!=-1){
+		            	 var apname=$("#apname").val();
+		            	 if($("#apname").val().indexOf("，")!=-1){
+		            		 var apname=$("apname").val().replace("，",",");
+		            	 }
+		            	 publicCourse.firstAssociateProctor={"name":apname.split(",")[0]}
+		            	 publicCourse.secondAssociateProctor={"name":apname.split(",")[1]}
+		             }else{
+		             	publicCourse.firstAssociateProctor={"name":$("#apname").val()}
+		             }
+		             console.log(publicCourse);
+		    		 $.ajax({
+		    			   type: "POST",
+		    			   url: "../arrangeInvigilation",
+		    			   dataType:"json",
+		    			   contentType:"application/json;charset=UTF-8",
+		    			   data: JSON.stringify(publicCourse),
+		    			   async: true,
+		    			   success: function(res){
+		    				   res=$.parseJSON(res);
+		    	            	 if(res.code=="0"){
+		    	            		layer.msg("监考信息安排成功");
+		    	            		
+		    	            	 }else{
+		    	            		 layer.msg("监考信息安排失败");
+		    	            		 
+		    	            	 }
+		    			   }
+		    		 		,error:function(){
+		    		 			layer.msg("操作失败");	
+		    		 		}
+		    			});
+		    	  }
+		    });
+		    return false;
+		  });
+	
+	});
+	</script>
+
+
+</body>
+</html>

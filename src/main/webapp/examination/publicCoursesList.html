@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+  <script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="add">监考安排</button>
+    <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="reset">重置监考</button>
+  </div>
+</script>
+  <table class="layui-hide" id="test" lay-filter="course"></table>
+<script type="text/html" id="bar">
+  <a class="layui-btn  layui-btn-xs" lay-event="edit">排考</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="reset">重置</a>
+</script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../publicList'
+    ,title: '上传文件数据表'
+    ,toolbar: '#toolbar'
+    ,page: true //开启分页
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,defaultToolbar: []
+    ,parseData: function(res){ //res 即为原始返回的数据
+    	data =$.parseJSON(res);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+       {type:'checkbox',event:'selRow'}
+      ,{field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'cid', title:'课程编号', align: 'center',hide:true}
+      ,{field:'teacher', title:'授课教师',align: 'center',templet: function (data) {
+    	  return data.course.teacher.name; 
+      }}
+      ,{field:'sname', title:'课程名称',align: 'center',templet: function (data) {
+    	  return data.course.sname; 
+      }}
+      ,{field:'name', title:'班级',align: 'center',templet: function (data) {
+    	  return data.course.subject.name; 
+      }}
+      ,{field:'number', title:'考试人数',align:'center'}
+      ,{field:'place', title:'考试地点',align:'center'}
+      ,{field:'time', title:'考试时间', width:'12%',align:'center',templet: function (data) {
+    	  str=data.time;
+    	  if(str==undefined||str==''){
+    		  return '';
+    	  }
+    	  str=str.split(":");
+    	  return "第"+str[0]+"周周"+str[1]+"第"+str[2]+"节"; 
+      }}
+      ,{field:'pid', title:'主监考id',align:'center',hide:true}
+      ,{field:'pname', title:'主监考',align:'center',templet: function (data) {
+          if(data.proctor==undefined){
+        	  return "";
+          }else{
+        	  return data.proctor.name;
+          }
+    	  
+      }}
+      ,{field:'apid', title:'副监考id',align:'center',hide:true,templet: function (data) {
+          if(data.fapid==undefined&&data.sapid==undefined){
+        	  return "";
+          }else if(data.fapid!=undefined&&data.sapid!=undefined){
+        	  return data.fapid+','+data.sapid;
+          }else if(data.fapid!=undefined){
+        	  return data.fapid;
+          }else if(data.sapid!=undefined){
+        	  return data.sapid;
+          }
+    	  
+      }}
+      ,{field:'apname', title:'副监考',align:'center',templet: function (data) {
+    	  if(data.firstAssociateProctor==undefined&&data.secondAssociateProctor==undefined){
+        	  return "";
+          }else if(data.firstAssociateProctor!=undefined&&data.secondAssociateProctor!=undefined){
+        	  return data.firstAssociateProctor.name+','+data.secondAssociateProctor.name;
+          }else if(data.firstAssociateProctor!=undefined){
+        	  return data.firstAssociateProctor.name;
+          }else if(data.secondAssociateProctor!=undefined){
+        	  return data.secondAssociateProctor.name;
+          }
+    	  
+      }}
+      ,{field:'college', title:'院系',align: 'center',templet: function (data) {
+          return data.course.subject.college.name;
+       }}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  var form =layui.form;
+  form.render();
+  var tableSelect = layui.tableSelect;
+  tableSelect.render({
+  	elem: '#collegeid',	//定义输入框input对象 必填
+  	checkedKey:'id', //表格的唯一建值，非常重要，影响到选中状态 必填
+  	searchKey: 'keyword',	//搜索输入框的name值 默认keyword
+  	searchPlaceholder: '关键词搜索',	//搜索输入框的提示文字 默认关键词搜索
+  	table: {	//定义表格参数，与LAYUI的TABLE模块一致，只是无需再定义表格elem
+  		url:'../collegeListLimit'
+  	   ,parseData: function(data){ //res 即为原始返回的数据
+  		 	data =$.parseJSON(data);  
+     		return data;
+  		 }
+  		,limits: [5,10,20]
+  	    ,limit: 5 
+  		,cols: [[
+  		   {type:'radio'}
+  		  ,{field:'num', title:'序号', align:'center',type:'numbers'}
+  	      ,{field:'id', title:'编号', align: 'center',hide:true}
+  	      ,{field:'name', title:'院系名', align: 'center'}]]
+  	},
+  	done: function (elem, data) {
+  		var NEWJSON = []
+  		layui.each(data.data, function (index, item) {
+  			NEWJSON.push(item.name)
+  		})
+  		elem.val(NEWJSON.join(","))
+  	}
+  })
+
+  function delAll(){
+		$("div.layui-table-body table tbody input[name='layTableCheckbox']:checked").each(function () { // 遍历选中的checkbox
+            var n = $(this).parents("tbody tr").index();  // 获取checkbox所在行的顺序
+            
+            //移除行
+            $("div.layui-table-body table tbody ").find("tr:eq(" + n + ")").remove();
+            //如果是全选移除，就将全选CheckBox还原为未选中状态
+            $("div.layui-table-header table thead div.layui-unselect.layui-form-checkbox").removeClass("layui-form-checked");
+        });
+  }
+  //头工具栏事件
+  table.on('toolbar(course)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'add':
+    	var checkStatus=table.checkStatus('Reload'),
+      	data=checkStatus.data,
+      	delList="";
+    	if(data.length==0){
+    		layer.msg("至少选择一门课程!");
+    		return false;
+    	}
+    	for(var i=0;i<data.length-1;i++){
+    		if(data[i].course.teacher.name!=data[i+1].course.teacher.name){
+    			layer.msg("合并监考任课教师需相同!");
+        		return false;
+    		}
+    		if(data[i].course.sname!=data[i+1].course.sname){
+    			layer.msg("合并监考课程需相同!");
+        		return false;
+    		}
+    	}
+      	data.forEach(function(n,i){
+               delList+=n.id+",";
+         });
+      	delList=delList.substring(0, delList.length-1);
+      	layer.open({
+           	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+               type:2,
+               title:"安排监考",
+               area: ['100%','100%'],
+               fix:true,
+               content:'publicCoursesEdit.html',
+               skin : 'layui-layer-molv',
+               success: function (layero, index) {
+            	var body = layer.getChildFrame('body', index);
+   	            result = JSON.stringify(data);
+   	            result = $.parseJSON(result);
+   	         	var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+             	iframeWin.ajaxGet(delList);
+   	           
+               },
+               end : function() { //iframe销毁后触发的函数
+            	   dataTable.reload('course');
+               }
+           });
+      break;
+      case 'reset':
+    	var checkStatus=table.checkStatus('Reload'),
+    	data=checkStatus.data,
+    	delList="";
+    	data.forEach(function(n,i){
+             delList+=n.id+",";
+             if(n.number==undefined||n.number==''){
+            	 layer.msg("选项包含未安排科目");
+            	 return false;
+             }
+         });
+    	delList=delList.substring(0, delList.length-1);
+        if(delList!=''){
+        	
+            layer.confirm('确定重置所选项吗？',function (index) {
+                $.ajax({
+                    url: '../publicCourseReset',
+                    type:'post',
+                    //contentType:"application/json;charset=UTF-8",
+                    dataType:'json',
+                    data:"id="+delList,
+                    success:function (res) {
+                    	 res=$.parseJSON(res);
+                    	 if(res.code=='0'){
+           
+                    		layer.msg("重置成功");
+                    		dataTable.reload('course');
+                    	 }else{
+                    		 layer.msg("重置失败"); 
+                    	 }
+                    		
+                    },
+                    error:function () {
+                        layer.msg('系统错误');
+                    }
+                });
+            })
+        }else{
+  
+        }
+      break;
+    };
+  });
+  //监听行工具事件
+  table.on('tool(course)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'reset'){
+      layer.confirm('确定重置已安排科目？', function(index){
+    	if(data.number==undefined||data.number==''){
+    		layer.msg("无法对未安排课程重置")
+    		return false;
+    	}
+    	$.post("../publicCourseReset","id="+data.id,function(data){
+    		if(res.code=='0'){
+    	           
+        		layer.msg("重置成功");
+        		dataTable.reload('course');
+        	 }else{
+        		 layer.msg("重置成功"); 
+        	 }
+    	},"json")
+    	
+		
+      });
+    }else if(obj.event === 'edit'){
+    	 layer.open({
+           	//layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+               type:2,
+               title:"安排监考",
+               area: ['100%','100%'],
+               fix:true,
+               content:'publicCoursesEdit.html',
+               skin : 'layui-layer-molv',
+               success: function (layero, index) {
+            	var body = layer.getChildFrame('body', index);
+   	            result = JSON.stringify(data);
+   	            result = $.parseJSON(result);
+   	         	var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+             	iframeWin.ajaxGet(result['id']);
+   	           
+               },
+               end : function() { //iframe销毁后触发的函数
+            	   dataTable.reload('course');
+               }
+           });
+    }
+  });
+ 
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.PublicCoursesDao">
+ 	<resultMap id="PublicResultMap" type="publicCourses" >
+    	<id column="id" property="id"/>
+    	<result column="cid" property="cid"/>
+    	<result column="number" property="number"/>
+    	<result column="place" property="place"/>
+    	<result column="time" property="time"/>
+    	<result column="pid" property="pid"/>
+    	<result column="fapid" property="fapid"/>
+    	<result column="sapid" property="sapid"/>
+    	<association property="proctor" column="pid" select="hfuu.examination.dao.Hfuu_TeacherDao.selTeacherInfoById"></association>
+    	<association property="course" column="cid" select="hfuu.examination.dao.Hfuu_CourseDao.selCourseInfoById"></association>
+    	<association property="firstAssociateProctor" column="fapid" select="hfuu.examination.dao.Hfuu_TeacherDao.selTeacherInfoById"></association>
+    	<association property="secondAssociateProctor" column="sapid" select="hfuu.examination.dao.Hfuu_TeacherDao.selTeacherInfoById"></association>
+    </resultMap>
+	<insert id="insCourseIdBatch" parameterType="list" useGeneratedKeys="true"
+    keyProperty="id">
+		insert into public_courses (cid) 
+		values 
+		<foreach collection="list" item="d" index="index"
+			separator=",">
+			(#{d})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+        cid=values(cid)
+  </insert>
+  <select id="selPublicCourseInfoLimit" resultMap="PublicResultMap">
+  		select * from public_courses where 
+  		     cid in
+  		     		(select c.id from hfuu_course c where tid in 
+  		     			(select id from hfuu_teacher where cid=#{college}))
+          	 or cid in
+          	 		(select id from hfuu_course where cid in 
+          	 				(select t.id from (select m.id,n.cid from hfuu_class  m LEFT JOIN hdept n on m.did=n.id ) t LEFT JOIN hcollege h on cid=h.id where cid=#{college})) 
+  </select>
+  <select id="selPublicCourseInfoByTeacher" resultMap="PublicResultMap">
+  		select * from public_courses where 
+  		     pid=#{id}
+  		     or fapid=#{id}
+  		     or sapid=#{id}
+  </select>
+  <select id="selPublicCourseByWeekAndSname" resultMap="PublicResultMap">
+  		select * from 
+  		(select * from public_courses  where number &lt;&gt; '' or number &lt;&gt; null) m where 1=1
+  		<if test="courseName!=null and courseName!='all' ">
+		    and m.cid in (select id from hfuu_course where sname=#{courseName})
+		</if>
+		<if test="week!=null and week!='0' ">
+		    and m.id  in (select id from(select substring_index(time,':',1) time,id from  public_courses) m where m.time=#{week})
+		</if>
+  </select>
+  <select id="selPublicCourseCount" resultType="int">
+  		select count(*) from public_courses where 1=1
+  </select>
+  <select id="selPublicCourseWeek" resultType="string">
+  	select DISTINCT substring_index(k.time,':',1) time from(
+			select * from public_courses where 
+  		     	cid in
+  		     		(select c.id from hfuu_course c where tid in 
+  		     			(select id from hfuu_teacher where cid='2'))
+          		or cid in
+          	 		(select id from hfuu_course where cid in 
+          	 				(select t.id from (select m.id,n.cid from hfuu_class  m LEFT JOIN hdept n on m.did=n.id ) t LEFT JOIN hcollege h on cid=h.id where cid='2'))) k
+	   where k.number &lt;&gt; '' or k.number &lt;&gt; null
+  </select>
+  <select id="selPublicCourseName" resultType="string">
+  	select DISTINCT sname from(
+			select * from public_courses where 
+  		     	cid in
+  		     		(select c.id from hfuu_course c where tid in 
+  		     			(select id from hfuu_teacher where cid='2'))
+          		or cid in
+          	 		(select id from hfuu_course where cid in 
+          	 				(select t.id from (select m.id,n.cid from hfuu_class  m LEFT JOIN hdept n on m.did=n.id ) t LEFT JOIN hcollege h on cid=h.id where cid='2'))) k
+	   LEFT JOIN hfuu_course q
+	   ON q.id=k.cid
+   where k.number &lt;&gt; '' or k.number &lt;&gt; null
+  </select>
+  <select id="selPublicCourseNameByWeek" resultType="string">
+  	select  sname from(
+			select DISTINCT substring_index(k.time,':',1) time, sname from(
+					select * from public_courses where 
+  		     			cid in
+  		     				(select c.id from hfuu_course c where tid in 
+  		     					(select id from hfuu_teacher where cid='2'))
+          				or cid in
+          	 				(select id from hfuu_course where cid in 
+          	 					(select t.id from (select m.id,n.cid from hfuu_class  m LEFT JOIN hdept n on m.did=n.id ) t LEFT JOIN hcollege h on cid=h.id where cid='2'))) k
+	  			LEFT JOIN hfuu_course q
+			 	on q.id=k.cid
+			where k.number &lt;&gt; '' or k.number &lt;&gt; null) l
+	where l.time=#{week}
+  </select>
+  
+  <select id="selPublicCoursesByPlaceAndTime" resultMap="PublicResultMap">
+  		select * from public_courses where place=#{place} and time=#{time}
+  </select>
+  <select id="selPublicCoursesById"  parameterType="list" resultMap="PublicResultMap">
+  		 select * from public_courses where 1=1
+  	     and id in
+	    <foreach collection="list"  item="item" open="(" separator="," close=")"  >
+           #{item}
+        </foreach>
+  </select>
+</mapper> 

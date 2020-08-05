@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="hfuu.examination.dao.Hfuu_ClassDao">
+    <resultMap id="ClassResultMap" type="hfuu_Class" >
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="did" property="did"/>
+    <association property="college" column="did" select="hfuu.examination.dao.HCollegeDao.selByDid">
+    </association>
+    </resultMap>
+    <insert id="insClassInfoBatch" parameterType="list">
+        insert  into hfuu_class(name,did) values
+        <foreach collection="list" item="emp" separator=",">
+            (#{emp.name},#{emp.did})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        did=values(did)
+        
+    </insert>
+    <select id="selClassInfoById" parameterType="int" resultMap="ClassResultMap">
+  		select * from hfuu_class where id=#{0}
+  	</select>
+</mapper>

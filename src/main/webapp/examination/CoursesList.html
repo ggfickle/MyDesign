@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+
+  <table class="layui-hide" id="test" lay-filter="course"></table>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../coursesList'
+    ,title: '上传文件数据表'
+    ,page: false //开启分页
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,defaultToolbar: []
+    ,parseData: function(res){ //res 即为原始返回的数据
+    	data =$.parseJSON(res);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+      {field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'teacher', title:'授课教师',align: 'center'}
+      ,{field:'sname', title:'课程名称',align: 'center'}
+      ,{field:'className', title:'班级',align: 'center'}
+      ,{field:'number', title:'考试人数',align:'center'}
+      ,{field:'place', title:'考试地点',align:'center'}
+      ,{field:'time', title:'考试时间', width:'12%',align:'center'}
+      ,{field:'pname', title:'主监考',align:'center'}
+      ,{field:'apname', title:'副监考',align:'center'}
+    ]]
+    ,id:'Reload'
+  });
+  var form =layui.form;
+  form.render();
+ 
+
+  function delAll(){
+		$("div.layui-table-body table tbody input[name='layTableCheckbox']:checked").each(function () { // 遍历选中的checkbox
+            var n = $(this).parents("tbody tr").index();  // 获取checkbox所在行的顺序
+            
+            //移除行
+            $("div.layui-table-body table tbody ").find("tr:eq(" + n + ")").remove();
+            //如果是全选移除，就将全选CheckBox还原为未选中状态
+            $("div.layui-table-header table thead div.layui-unselect.layui-form-checkbox").removeClass("layui-form-checked");
+        });
+  }
+});
+</script>
+
+
+</body>
+</html>

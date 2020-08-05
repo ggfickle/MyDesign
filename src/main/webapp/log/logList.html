@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ <script src="../static/layui/layui.all.js" charset="utf-8"></script>
+ <script src="../static/layui/lay/modules/tableSelect.js" charset="utf-8"></script>
+ <style>
+ 	.layui-form-radio {
+     line-height: 24px !important; 
+     padding: 0; 
+}
+ </style>
+ </head>
+ <body>
+  <script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="delAll">清空全部</button>
+    <button class="layui-btn layui-btn-danger layui-btn-sm" lay-event="del">删除选中</button>
+  </div>
+</script>
+  <table class="layui-hide" id="test" lay-filter="log"></table>
+<script type="text/html" id="bar">
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+
+layui.use(['table','layer','tableSelect','util'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  util=layui.util,
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../logList'
+    ,title: '上传文件数据表'
+    ,toolbar: '#toolbar'
+    ,cellMinWidth: 110 
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(data){ //res 即为原始返回的数据
+    	data =$.parseJSON(data);  
+    	console.log(data);
+    	return data;
+    }
+    ,cols: [[
+       {type:'checkbox',event:'selRow'}
+      ,{field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'type', title:'日志类型',align: 'center'}
+      ,{field:'ip', title:'ip地址',align: 'center'}
+      ,{field:'fullName', title:'用户账号',align: 'center'}
+      ,{field:'moduleType', title:'操作类别',align: 'center'}
+      ,{field:'operateCode', title:'执行代码',align: 'center'}
+      ,{field:'operateCode', title:'执行代码',align: 'center'}
+      ,{field:'operateValue', title:'操作类型',align: 'center'}
+      ,{field:'operateDateTime', title:'执行时间',align: 'center',sort: true
+    	  ,templet: function(data) {return util.toDateString(data.operateDateTime, "yyyy-MM-dd HH:mm:ss");}}
+      ,{field:'createDateTime', title:'创建时间',align: 'center',sort: true
+    	  ,templet: function(data) {return util.toDateString(data.operateDateTime, "yyyy-MM-dd HH:mm:ss");}}
+      ,{field:'remark', title:'备注',align: 'center'}
+      ,{field:'operateStatus', title:'执行状态',align: 'center',sort: true}
+      ,{field:'localAddr', title:' 服务器IP',align: 'center'}
+      ,{field:'method', title:'调用方法',align: 'center'}
+      ,{field:'param', title:'请求参数',align: 'center'}
+      ,{field:'exceptionDetail', title:'异常信息',align: 'center'}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  table.on('sort(log)', function(obj){ //注：tool是工具条事件名，dept是table原始容器的属性 lay-filter="对应的值"
+	  console.log(obj.field); //当前排序的字段名
+	  console.log(obj.type); //当前排序类型：desc（降序）、asc（升序）、null（空对象，默认排序）
+	  console.log(this); //当前排序的 th 对象
+	  
+	  //尽管我们的 table 自带排序功能，但并没有请求服务端。
+	  //有些时候，你可能需要根据当前排序的字段，重新向服务端发送请求，从而实现服务端排序，如：
+	  table.reload('Reload', { //testTable是表格容器id
+	    initSort: obj //记录初始排序，如果不设的话，将无法标记表头的排序状态。 layui 2.1.1 新增参数
+	    ,where: { //请求参数（注意：这里面的参数可任意定义，并非下面固定的格式）
+	      field: obj.field //排序字段
+	      ,order: obj.type //排序方式
+	    }
+	  });
+	});
+  function delAll(){
+		$("div.layui-table-body table tbody input[name='layTableCheckbox']:checked").each(function () { // 遍历选中的checkbox
+            var n = $(this).parents("tbody tr").index();  // 获取checkbox所在行的顺序
+            //移除行
+            $("div.layui-table-body table tbody ").find("tr:eq(" + n + ")").remove();
+            //如果是全选移除，就将全选CheckBox还原为未选中状态
+            $("div.layui-table-header table thead div.layui-unselect.layui-form-checkbox").removeClass("layui-form-checked");
+        });
+  }
+  //头工具栏事件
+  table.on('toolbar(log)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'delAll':
+    	  $.ajax({
+              url: '../delAll',
+              type:'post',
+              //contentType:"application/json;charset=UTF-8",
+              dataType:'json',
+              success:function (res) {
+              	 res=$.parseJSON(res);
+              	 if(res.code=='0'){
+              		delAll();
+              		layer.msg(res.msg);
+              		dataTable.reload('Reload');
+              	 }else{
+              		 layer.msg(res.msg); 
+              	 }
+              		
+              },
+              error:function () {
+                  layer.msg('系统错误');
+              }
+          });
+      break;
+      case 'del':
+    	var checkStatus=table.checkStatus('Reload'),
+    	data=checkStatus.data,
+    	logList="";
+    	data.forEach(function(n,i){
+             logList+=n.id+",";
+         });
+    	delList=delList.substring(0, delList.length-1);
+        if(logList!=''){
+        	
+            layer.confirm('确定删除所选项吗？',function (index) {
+                $.ajax({
+                    url: '../delLog',
+                    type:'post',
+                    //contentType:"application/json;charset=UTF-8",
+                    dataType:'json',
+                    data:"id="+delList,
+                    success:function (res) {
+                    	 res=$.parseJSON(res);
+                    	 if(res.code=='0'){
+                    		delAll();
+                    		layer.msg(res.msg);
+                    	 }else{
+                    		 layer.msg(res.msg); 
+                    	 }
+                    		
+                    },
+                    error:function () {
+                        layer.msg('系统错误');
+                    }
+                });
+            })
+        }else{
+  
+        }
+      break;
+    };
+  });
+  //监听行工具事件
+  table.on('tool(log)', function(obj){
+    var data = obj.data;
+    if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+    	$.post("../delLog","id="+data.id,function(data){
+    		data=$.parseJSON(data);
+    		layer.msg(data.msg);
+    	},"json")
+        obj.del();
+        layer.close(index);
+      });
+    }
+  });
+  
+});
+</script>
+
+
+</body>
+</html>

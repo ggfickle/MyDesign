@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="../static/layui/css/layui.css">
+ </head>
+ <body>
+ <script type="text/html" id="toolbar">
+  <div class="layui-btn-container">
+    <button class="layui-btn layui-btn-sm" lay-event="sendAllMail">一键通知</button>
+  </div>
+</script>
+  <table class="layui-hide" id="test" lay-filter="college"></table>
+
+<script type="text/html" id="bar">
+  <a class="layui-btn layui-btn-sm" lay-event="send">邮件通知</a>
+</script>
+ <script src="../static/layui/layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+layui.use(['table','layer'], function(){
+  var table = layui.table;
+  var $ = layui.jquery,
+  obj=[],
+  layer=layui.layer;
+  var dataTable=table.render({
+    elem: '#test'
+    ,url:'../getArrangementInfo'
+    ,title: '教师考务信息'
+    ,toolbar: '#toolbar'
+    ,page: true //开启分页
+    ,defaultToolbar: []
+    ,parseData: function(res){ //res 即为原始返回的数据
+    	data =$.parseJSON(res);  
+    	console.log(data);
+    	return data;	
+    }
+    ,cols: [[
+       {type:'checkbox',event:'selRow'}
+      ,{field:'num', title:'序号', align:'center',type:'numbers'}
+      ,{field:'id', title:'编号', align: 'center',hide:true}
+      ,{field:'tid', title:'教师编号', align: 'center',hide:true}
+      ,{field:'tname', title:'教师姓名',align: 'center',templet: function (data) {
+    	  return data.name; 
+      }}
+      ,{field:'mainArragementInfo', title:'考务1(主监考)',align: 'center',templet: function (data) {
+   	  	  var info="";
+   		  for(var i=0;i<data.mainArrangement.length;i++){
+   	  	 	  info+=data.mainArrangement[i].name+"-----"+data.mainArrangement[i].sname+"-"+data.mainArrangement[i].time+"-"+data.mainArrangement[i].place+"<br/>";
+   		  }
+    	  return info;
+      }}
+      ,{field:'secondArragementInfo', title:'考务2(副监考)',align: 'center',templet: function (data) {
+   	      var info="";
+   		  for(var i=0;i<data.secondArrangement.length;i++){
+       	  	info+=data.secondArrangement[i].name+"-----"+data.secondArrangement[i].sname+"-"+data.secondArrangement[i].time+"-"+data.secondArrangement[i].place+"<br/>"; 
+   		  }
+   		  return info;
+      }}
+      ,{fixed: 'right', title:'操作', toolbar: '#bar', align: 'center'}
+    ]]
+    ,id:'Reload'
+    ,limits: [10,20,30,40,50]
+    ,limit: 10 //每页默认显示的数量
+  });
+  
+//头工具栏事件
+  table.on('toolbar(college)', function(obj){
+    var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'sendAllMail':
+        var data = checkStatus.data;
+        if(data==""){
+        	layer.alert("请先至少选择一条教师信息");
+        }else{
+        	var loading = layer.load(0);
+        	$.ajax({
+ 			   type: "POST",
+ 			   url: "../sendAllMail",
+ 			   dataType:"json",
+ 			   contentType:"application/json;charset=UTF-8",
+ 			   data: JSON.stringify(data),
+ 			   async: true,
+ 			   success: function(res){
+ 				   res=$.parseJSON(res);
+ 	            	 if(res.code=="1"){
+ 	            		layer.msg(res.msg);
+ 	            	 }else{
+ 	            		 layer.msg(res.msg); 
+ 	            	 }
+ 	            	layer.close(loading);
+ 			   }
+ 		 		,error:function(){
+ 		 			layer.msg("操作失败");	
+ 		 		}
+ 			});
+        }
+      break;
+    };
+  });
+  //监听行工具事件
+  table.on('tool(college)', function(obj){
+	    var data = obj.data;
+	    if(obj.event === 'send'){
+	    	layer.confirm('确定要发送邮件通知'+data.name+'老师吗',function (index) {
+	    		var loading = layer.load(0);
+	    		$.ajax({
+	    			   type: "POST",
+	    			   url: "../sendSingleMail",
+	    			   dataType:"json",
+	    			   contentType:"application/json;charset=UTF-8",
+	    			   data: JSON.stringify(data),
+	    			   async: true,
+	    			   success: function(res){
+	    				   res=$.parseJSON(res);
+	    	            	 if(res.code=="1"){
+	    	            		layer.msg(res.msg);
+	    	            	 }else{
+	    	            		 layer.msg(res.msg); 
+	    	            	 }
+	    	            	 layer.close(loading);
+	    			   }
+	    		 		,error:function(){
+	    		 			layer.msg("操作失败");	
+	    		 		}
+	    			});
+            })
+	      
+	    }
+	  });
+  
+});
+</script>
+</body>
+</html>
